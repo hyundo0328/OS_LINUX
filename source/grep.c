@@ -27,22 +27,22 @@ int grep_print(DirectoryTree* dirTree, char *search, char* fName, int o)
         else if (o == 0)
         {
             if (strstr(buf, search) != NULL)
-                printf("%s \"%s\"", search, buf);
+                printf("%s", buf);
         }
         else if (o == 1)
         {
             if (strstr(buf, search) != NULL)
-                printf("%d:%s \"%s\"", cnt, search, buf);
+                printf("%d:%s ", cnt, buf);
         }
         else if (o == 2)
         {
             if (strstr(buf, search) == NULL)
-                printf("%s \"%s\"", search, buf);
+                printf("%s", buf);
         }
         else if (o == 3)
         {
             if (strcasestr(buf, search) != NULL)
-                printf("%s \"%s\"", search, buf);
+                printf("%s", buf);
         }
         else if (o == 4)
         {
@@ -54,20 +54,16 @@ int grep_print(DirectoryTree* dirTree, char *search, char* fName, int o)
         else if (o == 5)
         {
             if (strcasestr(buf, search) != NULL)
-                printf("%d:%s \"%s\"", cnt, search, buf);
+                printf("%d:%s", cnt, buf);
         }
         else if (o == 6)
         {
             if (strcasestr(buf, search) == NULL)
                 printf("%s", buf);
-            else
-                printf("\n");
         }
         else if(o == 7){
             if (strcasestr(buf, search) == NULL)
                 printf("%d:%s", cnt, buf);
-            else
-                printf("\n");
         }
         cnt++;
     }
@@ -96,13 +92,13 @@ void *grep_thread(void *arg){
         tmpNode = IsExistDir(dirTree, cmd, 'd');
         tmpNode2 = IsExistDir(dirTree, cmd, 'f');
         if (tmpNode == NULL && tmpNode2 == NULL) {
-            printf("cat: '%s': No such file or directory.\n", cmd);
+            printf("grep: '%s': No such file or directory.\n", cmd);
             return NULL;
         } else if (tmpNode != NULL && tmpNode2 == NULL) {
-            printf("cat: '%s': Is a directory\n", cmd);
+            printf("grep: '%s': Is a directory\n", cmd);
             return NULL;
         } else if (tmpNode2 != NULL && HasPermission(tmpNode2, 'r') != 0) {
-            printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
+            printf("grep: Can not open file '%s': Permission denied\n", tmpNode2->name);
             return NULL;
         } else 
             grep_print(dirTree, con, cmd, option);
@@ -110,7 +106,7 @@ void *grep_thread(void *arg){
         strncpy(tmp2, getDir(tmp), MAX_DIR);
         val = MovePath(dirTree, tmp2);
         if (val) {
-            printf("cat: '%s': No such file or directory.\n", tmp2);
+            printf("grep: '%s': No such file or directory.\n", tmp2);
             return NULL;
         }
         str = strtok(tmp, "/");
@@ -121,15 +117,15 @@ void *grep_thread(void *arg){
         tmpNode = IsExistDir(dirTree, tmp3, 'd');
         tmpNode2 = IsExistDir(dirTree, tmp3, 'f');
         if(tmpNode == NULL && tmpNode2 == NULL) {
-            printf("cat: '%s': No such file or directory.\n", tmp3);
+            printf("grep: '%s': No such file or directory.\n", tmp3);
             dirTree->current = currentNode;
             return NULL;
         } else if (tmpNode != NULL && tmpNode2 == NULL) {
-            printf("cat: '%s': Is a directory\n", tmp3);
+            printf("grep: '%s': Is a directory\n", tmp3);
             dirTree->current = currentNode;
             return NULL;
         } else if (tmpNode2 != NULL && HasPermission(tmpNode2, 'r') != 0) {
-            printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
+            printf("grep: Can not open file '%s': Permission denied\n", tmpNode2->name);
             dirTree->current = currentNode;
             return NULL;
         } else 
@@ -157,7 +153,7 @@ int grep(DirectoryTree* dirTree, char* cmd)        //완료
     int val;
 
     if(cmd == NULL){
-        printf("Try 'rm --help' for more information.\n");
+        printf("Try 'grep --help' for more information.\n");
         return -1;
     }
     currentNode = dirTree->current;
@@ -275,10 +271,12 @@ int grep(DirectoryTree* dirTree, char* cmd)        //완료
             }
         }
         else if(strcmp(cmd, "--help") == 0){
-            printf("사용법: cat [<옵션>]... [<파일>]...\n");
+            printf("사용법: grep [<옵션>]... [<파일>]...\n");
             printf("  FILE(들)을 합쳐서 표준 출력으로 보낸다.\n\n");
             printf("  Options:\n");
-            printf("    -n, --number         \t number all output line\n");
+            printf("    -n, --number         \t number all output line.\n");
+            printf("    -v, --number         \t Selected lines are those not matching any of the specified patterns.\n");
+            printf("    -i, --number         \t Perform case insensitive matching.\n");
             printf("        --help\t 이 도움말을 표시하고 끝냅니다\n");
             return -1;
         }

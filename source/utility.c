@@ -245,7 +245,6 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
     else if(strcmp(str, "grep") == 0){
         str = strtok(NULL, " ");
         grep(dirTree, str);
-
     }
     else if(strcmp(cmd, "exit") == 0){
             printf("로그아웃\n");
