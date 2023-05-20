@@ -4,6 +4,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <semaphore.h>
+#include <pthread.h>
 #ifndef MAIN_H_
 #define MAIN_H_
 #define DEFAULT printf("%c[%dm", 0x1B, 0)
@@ -16,6 +17,7 @@
 #define MAX_LENGTH 200
 #define MAX_DIR 50
 #define MAX_NAME 20
+#define MAX_THREAD 50
 
 
 //User
@@ -66,15 +68,6 @@ typedef struct tagDirectoryTree{
 	DirectoryNode* current;
 }DirectoryTree;
 
-typedef struct threadTree {
-    DirectoryTree *threadTree;
-    DirectoryTree *name;
-    char *command;
-    char *usrName;
-    int mode;
-    int option;
-} ThreadTree;
-
 //stack using linked list
 typedef struct tagStackNode{
 	char name[MAX_NAME];
@@ -85,6 +78,15 @@ typedef struct tagStack{
 	StackNode* TopNode;
 	int cnt;
 }Stack;
+
+typedef struct threadTree {
+    DirectoryTree *threadTree;
+    DirectoryTree *name;
+    char *cmd;
+    char *username;
+    int mode;
+    int option;
+} ThreadTree;
 
 //time
 time_t ltime;
@@ -119,12 +121,10 @@ int Concatenate(DirectoryTree* dirTree, char* fName, int o);
 //chmod.c
 int chmod(DirectoryTree* dirTree, char* cmd);
 int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName);
-void ChangeModeAll(DirectoryNode* dirNode, int mode);
 
 //chown.c
 int chown_(DirectoryTree* dirTree, char* cmd);
 int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag);
-void ChangeOwnerAll(DirectoryNode* dirNode, char* userName);
 
 //find.c
 int find_(DirectoryTree* dirTree, char* cmd);

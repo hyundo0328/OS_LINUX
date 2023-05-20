@@ -55,26 +55,39 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
     return 0;
 }
 
-void ChangeOwnerAll(DirectoryNode* dirNode, char* userName)
-{
-    UserNode* tmpUser = NULL;
+void *chown_thread(void *arg) {
+    ThreadTree *threadTree = (ThreadTree *)arg;
+    DirectoryTree *dirTree = threadTree->threadTree;
+    char *cmd = threadTree->cmd;
+    char *tmp = threadTree->username;
+    char *str;
 
-    tmpUser = IsExistUser(usrList, userName);
-
-    if(dirNode->RightSibling != NULL){
-        ChangeOwnerAll(dirNode->RightSibling, userName);
+    if(!strstr(tmp, ":")) 
+        ChangeOwner(dirTree, tmp, cmd, 0);
+    else {
+        char tmp2[MAX_NAME];
+        strncpy(tmp2, tmp, MAX_NAME);
+        char *str2 = strtok(tmp, ":");
+        if (str2 != NULL && strcmp(tmp, tmp2) != 0){
+            ChangeOwner(dirTree, str2, cmd, 0);
+            str2 = strtok(NULL, " ");
+            if (str2 != NULL)
+                ChangeOwner(dirTree, str2, cmd, 1);
+        }
+        else if (str2 != NULL && strcmp(tmp, tmp2) == 0)
+            ChangeOwner(dirTree, str2, cmd, 1);
     }
-    if(dirNode->LeftChild != NULL){
-        ChangeOwnerAll(dirNode->LeftChild, userName);
-    }
-    dirNode->UID = tmpUser->UID;
-    dirNode->GID = tmpUser->GID;
+    pthread_exit(NULL);
 }
 
 int chown_(DirectoryTree* dirTree, char* cmd)      //완료
 {
     DirectoryNode* tmpNode = NULL;
     UserNode* tmpUser = NULL;
+    pthread_t threadPool[MAX_THREAD];
+    ThreadTree threadTree[MAX_THREAD];
+
+    int thread_cnt = 0;
     char* str;
     char tmp[MAX_NAME];
 
@@ -100,24 +113,17 @@ int chown_(DirectoryTree* dirTree, char* cmd)      //완료
             return -1;
         }
         else{
-            //그룹
-            if (strstr(tmp, ":") == NULL){
-                ChangeOwner(dirTree, tmp, str, 0);
-            }
-            else{
-                char tmp2[MAX_NAME];
-                strncpy(tmp2, tmp, MAX_NAME);
-                char *str2 = strtok(tmp, ":");
-                if (str2 != NULL && strcmp(tmp, tmp2) != 0){
-                    ChangeOwner(dirTree, str2, str, 0);
-                    str2 = strtok(NULL, " ");
-                    if (str2 != NULL)
-                        ChangeOwner(dirTree, str2, str, 1);
-                }
-                else if (str2 != NULL && strcmp(tmp, tmp2) == 0)
-                    ChangeOwner(dirTree, str2, str, 1);
+            while (str) {
+                threadTree[thread_cnt].threadTree = dirTree;
+                threadTree[thread_cnt].username = tmp;
+                threadTree[thread_cnt++].cmd = str;
+                str = strtok(NULL, " ");
             }
         }
+    }
+    for (int i = 0; i < thread_cnt; i++) {
+        pthread_create(&threadPool[i], NULL, chown_thread, (void*)&threadTree[i]);
+        pthread_join(threadPool[i], NULL);
     }
     return 0;
 }

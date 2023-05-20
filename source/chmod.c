@@ -32,21 +32,23 @@ int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)
     return 0;
 }
 
-void ChangeModeAll(DirectoryNode* dirNode, int mode)
-{
-    if(dirNode->RightSibling != NULL){
-        ChangeModeAll(dirNode->RightSibling, mode);
-    }
-    if(dirNode->LeftChild != NULL){
-        ChangeModeAll(dirNode->LeftChild, mode);
-    }
-    dirNode->mode = mode;
-    Mode2Permission(dirNode);
+void *chmod_thread(void *arg) {
+    ThreadTree *threadTree = (ThreadTree *) arg;
+    DirectoryTree *dirTree = threadTree->threadTree;
+    int mode = threadTree->mode;
+    char *cmd = threadTree->cmd;
+    
+    ChangeMode(dirTree, mode, cmd);
+    pthread_exit(NULL);
 }
 
 int chmod(DirectoryTree* dirTree, char* cmd)         //완료
 {
     DirectoryNode* tmpNode = NULL;
+    pthread_t threadPool[MAX_THREAD];
+    ThreadTree threadTree[MAX_THREAD];
+
+    int thread_cnt = 0;
     char* str;
     int tmp;
 
@@ -72,11 +74,20 @@ int chmod(DirectoryTree* dirTree, char* cmd)         //완료
                 printf("Try 'chmod --help' for more information.\n");
                 return -1;
             }
-            ChangeMode(dirTree, tmp, str);
+            while (str) {
+                threadTree[thread_cnt].threadTree = dirTree;
+                threadTree[thread_cnt].cmd = str;
+                threadTree[thread_cnt++].mode = tmp;
+                str = strtok(NULL, " ");
+            }
         }
         else{
             printf("chmod: Invalid file mode: %s\n", cmd);
             return -1;
+        }
+        for (int i = 0; i < thread_cnt; i++) {
+            pthread_create(&threadPool[i], NULL, chmod_thread, (void*)&threadTree[i]);
+            pthread_join(threadPool[i], NULL);
         }
     }
     return 0;

@@ -90,7 +90,7 @@ int cd(DirectoryTree* dirTree, char* cmd)         //완료
     else{
         tmpNode = IsExistDir(dirTree, cmd, 'd');
         if(tmpNode != NULL){
-            if(HasPermission(tmpNode, 'r') != 0){
+            if(HasPermission(tmpNode, 'x') != 0){
                 printf("cd: permission denied: %s\n", cmd);
                 return -1;
             }

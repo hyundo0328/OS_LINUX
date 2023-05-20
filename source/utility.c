@@ -226,7 +226,6 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
 {
     char* str;
     int val;
-    pthread_t ptread;
     if(strcmp(cmd, "") == 0 || cmd[0] == ' '){
         return;
     }

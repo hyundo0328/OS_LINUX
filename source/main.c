@@ -18,6 +18,5 @@ int main()
         cmd[strlen(cmd)-1] = '\0';
         Instruction(Linux, cmd);
     }
-
     return 0;
 }

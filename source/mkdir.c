@@ -1,6 +1,7 @@
 #include "../include/main.h"
 
 //mkdir
+
 DirectoryTree* InitializeTree()
 {
     //variables
@@ -108,6 +109,70 @@ int MakeDir(DirectoryTree* dirTree, char* dirName, char type)
     return 0;
 }
 
+void *mkdir_thread(void *arg) {
+    ThreadTree *threadTree = ((ThreadTree *)arg);
+    DirectoryTree *dirTree = threadTree->threadTree;
+    DirectoryTree *p_preTree;
+    char *cmd = threadTree->cmd;
+
+    DirectoryNode *tmpNode = dirTree->current;
+    char tmp[MAX_DIR];
+    char str[MAX_DIR];
+    char tmpstr[MAX_DIR];
+    char name[MAX_DIR];
+    int namelen = 0;
+    int val;
+
+    strncpy(tmp, cmd, MAX_DIR);
+
+    if (strstr(cmd, "/") == NULL) {
+        MakeDir(dirTree, cmd, 'd');
+    } else if (threadTree->option == 1) {
+        int tmplen = strlen(tmp), i = 0;
+        if (tmp[0] == '/') {
+            dirTree->current = dirTree->root;
+            i = 1;
+        }
+        if (tmp[tmplen - 1] == '/') {
+            tmplen -= 1;
+        }
+        for (; i < tmplen; i++) {
+            str[i] = tmp[i];
+            str[i + 1] = 0;
+            name[namelen++] = tmp[i];
+            if (tmp[i] == '/') {
+                name[--namelen] = 0;
+                strncpy(tmpstr, str, i - 1);
+                val = Movecurrent(dirTree, name);
+                if (val == -1) {
+                    MakeDir(dirTree, name, 'd');
+                    val = Movecurrent(dirTree, name);
+                }
+                namelen = 0;
+            }
+        }
+        name[namelen] = 0;
+        MakeDir(dirTree, name, 'd');
+        dirTree->current = tmpNode;
+    } else {
+        char *p_get_directory = getDir(cmd);
+        val = MovePath(dirTree, p_get_directory);
+        if (val != 0) {
+            printf("mkdir: '%s': No such file or directory.\n", p_get_directory);
+        } else {
+            char *str = strtok(tmp, "/");
+            char *p_directory_name;
+            while (str != NULL) {
+                p_directory_name = str;
+                str = strtok(NULL, "/");
+            }
+            MakeDir(dirTree, p_directory_name, 'd');
+            dirTree->current = tmpNode;
+        }
+    }
+    pthread_exit(NULL);
+}
+
 int mkdir(DirectoryTree* dirTree, char* cmd)        //멀티스레드 구현해야함
 {
     DirectoryNode* tmpNode = NULL;
@@ -122,56 +187,23 @@ int mkdir(DirectoryTree* dirTree, char* cmd)        //멀티스레드 구현해�
         printf("Try 'mkdir --help' for more information.\n");
         return -1;
     }
+    int thread_cnt = 0;
+    pthread_t threadPool[MAX_THREAD];
+    ThreadTree threadTree[MAX_THREAD];
     tmpNode = dirTree->current;
     if(cmd[0] == '-'){ //옵션 있을 경우
         if(strcmp(cmd, "-p") == 0){
             str = strtok(NULL, " ");
-            printf("%s\n", str);
             if(str == NULL){
                 printf("mkdir: 잘못된 연산자\n");
                 printf("Try 'mkdir --help' for more information.\n");
                 return -1;
             }
-            if(strncmp(str, "/", 1) == 0){
-                dirTree->current = dirTree->root;
-            }
-            str = strtok(str, "/");
             while(str != NULL){
-                val = Movecurrent(dirTree, str);
-                if(val != 0){
-                    MakeDir(dirTree, str, 'd');
-                    Movecurrent(dirTree, str);
-                }
-                str = strtok(NULL, "/");
-            }
-            dirTree->current = tmpNode;
-        }
-        else if(strcmp(cmd, "-m") == 0){
-            str = strtok(NULL, " ");
-            if(str == NULL){
-                printf("mkdir: 잘못된 연산자\n");
-                printf("Try 'mkdir --help' for more information.\n");
-                return -1;
-            }
-            if(str[0]-'0'<8 && str[1]-'0'<8 && str[2]-'0'<8 && strlen(str)==3){
-                tmpMode = atoi(str);
+                threadTree[thread_cnt].threadTree = dirTree;
+                threadTree[thread_cnt].option = 1;
+                threadTree[thread_cnt++].cmd = str;
                 str = strtok(NULL, " ");
-                if(str == NULL){
-                    printf("mkdir: 잘못된 연산자\n");
-                    printf("Try 'mkdir --help' for more information.\n");
-                    return -1;
-                }
-                val = MakeDir(dirTree, str, 'd');
-                if(val == 0){
-                    tmpNode = IsExistDir(dirTree, str, 'd');
-                    tmpNode->mode = tmpMode;
-                    Mode2Permission(tmpNode);
-                }
-            }
-            else{
-                printf("mkdir: 잘못된 모드: '%s'\n", str);
-                printf("Try 'mkdir --help' for more information.\n");
-                return -1;
             }
         }
         else if(strcmp(cmd, "--help") == 0){
@@ -184,43 +216,25 @@ int mkdir(DirectoryTree* dirTree, char* cmd)        //멀티스레드 구현해�
             return -1;
         }
         else{
-            str = strtok(cmd, "-");
-            if(str == NULL){
-                printf("mkdir: 잘못된 연산자\n");
-                printf("Try 'mkdir --help' for more information.\n");
-                return -1;
-            }
-            else{
-                printf("mkdir: 부적절한 옵션 -- '%s'\n", str);
-                printf("Try 'mkdir --help' for more information.\n");
-                return -1;
-            }
+            printf("Try 'mkdir --help' for more information.\n");
+            return -1;
         }
     }
     else{ //옵션 없을 경우
         str = strtok(NULL, " ");
-        if(str == NULL){ //하나 생성
-            strncpy(tmp, cmd, MAX_DIR);
-            if(strstr(cmd, "/") == NULL){
-                MakeDir(dirTree, cmd, 'd');
-            }
-            else{
-                strncpy(tmp2, getDir(cmd), MAX_DIR);
-                val = MovePath(dirTree, tmp2);
-                if(val != 0){
-                    printf("mkdir: '%s': 그런 파일이나 디렉터리가 없습니다\n", tmp2);
-                    return -1;
-                }
-                str = strtok(tmp, "/");
-                while(str != NULL){
-                    strncpy(tmp3, str, MAX_NAME);
-                    str = strtok(NULL, "/");
-                }
-                MakeDir(dirTree, tmp3 , 'd');
-                dirTree->current = tmpNode;
-            }
+        threadTree[thread_cnt].threadTree = dirTree;
+        threadTree[thread_cnt].option = 0;
+        threadTree[thread_cnt++].cmd = cmd;
+        while (str) {
+            threadTree[thread_cnt].threadTree = dirTree;
+            threadTree[thread_cnt].option = 0;
+            threadTree[thread_cnt++].cmd = str;
+            str = strtok(NULL, " ");
         }
     }
-
+    for (int i = 0; i < thread_cnt; i++) {
+        pthread_create(&threadPool[i], NULL, mkdir_thread, (void *)&threadTree[i]);
+        pthread_join(threadPool[i], NULL);
+    }
     return 0;
 }
