@@ -86,6 +86,7 @@ typedef struct threadTree {
     char *username;
     int mode;
     int option;
+    char *content;
 } ThreadTree;
 
 //time
@@ -130,6 +131,11 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
 int find_(DirectoryTree* dirTree, char* cmd);
 int ReadDir(DirectoryTree* dirTree, char* tmp, char* dirName,int o);
 void FindDir(DirectoryTree* dirTree, char* dirName, int o);
+
+//grep.c
+int grep_print(DirectoryTree* dirTree, char *search, char* fName, int o);
+void *grep_thread(void *arg);
+int grep(DirectoryTree* dirTree, char* cmd);
 
 //utility.c
 void DestroyNode(DirectoryNode* dirNode);
