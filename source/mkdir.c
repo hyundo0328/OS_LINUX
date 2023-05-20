@@ -112,7 +112,6 @@ int MakeDir(DirectoryTree* dirTree, char* dirName, char type)
 void *mkdir_thread(void *arg) {
     ThreadTree *threadTree = ((ThreadTree *)arg);
     DirectoryTree *dirTree = threadTree->threadTree;
-    DirectoryTree *p_preTree;
     char *cmd = threadTree->cmd;
 
     DirectoryNode *tmpNode = dirTree->current;

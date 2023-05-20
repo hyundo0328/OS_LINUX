@@ -132,8 +132,6 @@ int ReadDir(DirectoryTree* dirTree, char* tmp, char* dirName,int o);
 void FindDir(DirectoryTree* dirTree, char* dirName, int o);
 
 //utility.c
-int Mode2Permission(DirectoryNode* dirNode);
-void PrintPermission(DirectoryNode* dirNode);
 void DestroyNode(DirectoryNode* dirNode);
 void getPath(DirectoryTree* dirTree, DirectoryNode* dirNode, Stack* dirStack);
 void WriteNode(DirectoryTree* dirTree, DirectoryNode* dirNode, Stack* dirStack);
@@ -144,6 +142,10 @@ void Instruction(DirectoryTree* dirTree, char* cmd);
 void PrintStart();
 void PrintHead(DirectoryTree* dirTree, Stack* dirStack);
 
+//permission.c
+int HasPermission(DirectoryNode* dirNode, char o);
+int Mode2Permission(DirectoryNode* dirNode);
+void PrintPermission(DirectoryNode* dirNode);
 
 //directory.c
 void DestroyDir(DirectoryNode* dirNode);
@@ -161,7 +163,6 @@ UserList* LoadUserList();
 UserNode* IsExistUser(UserList* userList, char* userName);
 char* GetUID(DirectoryNode* dirNode);
 char* GetGID(DirectoryNode* dirNode);
-int HasPermission(DirectoryNode* dirNode, char o);
 void Login(UserList* userList, DirectoryTree* dirTree);
 
 //stack.c

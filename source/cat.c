@@ -3,7 +3,6 @@
 void *cat_thread(void *arg) {
     ThreadTree *threadTree = (ThreadTree *)arg;
     DirectoryTree *dirTree = threadTree->threadTree;
-    DirectoryTree *tmpTree;
     char *cmd = threadTree->cmd;
     DirectoryNode *currentNode = dirTree->current;
     DirectoryNode *tmpNode = NULL;
