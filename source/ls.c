@@ -194,9 +194,8 @@ int ListDir(DirectoryTree* dirTree, int a, int l)
 
             if (dirTree->current != dirTree->root) {
                 tmpNode2 = dirTree->current->Parent->LeftChild;
-                if (tmpNode2 == NULL) {
+                if (tmpNode2 == NULL)
                     cnt = 2;
-                }
                 else {
                     if (tmpNode2->type == 'd')
                         cnt = 3;
