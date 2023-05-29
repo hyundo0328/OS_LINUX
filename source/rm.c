@@ -1,6 +1,102 @@
 #include "../include/main.h"
 
-//rm
+int rm(DirectoryTree* dirTree, char* cmd)
+{
+    DirectoryNode* currentNode = NULL;
+    DirectoryNode* tmpNode = NULL;
+    DirectoryNode* tmpNode2 = NULL;
+    pthread_t threadPool[MAX_THREAD];
+    ThreadTree threadTree[MAX_THREAD];
+
+    int thread_cnt = 0;
+    char* str;
+    char tmp[MAX_DIR];
+    char tmp2[MAX_DIR];
+    char tmp3[MAX_DIR];
+    int val, option = 0;
+
+    if(cmd == NULL){
+        printf("rm: missing operand\n");
+        printf("Try 'rm --help' for more information.\n");
+        return -1;
+    }
+    currentNode = dirTree->current;
+    if(cmd[0] == '-'){
+        if(strcmp(cmd, "-r") == 0){
+            str = strtok(NULL, " ");
+            if(str == NULL){
+                printf("rm: missing operand\n");
+                printf("Try 'rm --help' for more information.\n");
+                return -1;
+            }
+            option = 1;
+        }
+        else if(strcmp(cmd, "-f") == 0){
+            str = strtok(NULL, " ");
+            if(str == NULL){
+                return -1;
+            }
+            option = 2;
+        }
+        else if(strcmp(cmd, "-rf") == 0 || strcmp(cmd, "-fr") == 0){
+            str = strtok(NULL, " ");
+            if(str == NULL){
+                return -1;
+            }
+            option = 3;
+        }
+        else if(strcmp(cmd, "--help") == 0){
+            printf("Usage: rm [OPTION]... [FILE]...\n");
+            printf("Remove (unlink) the FILE(s).\n\n");
+            
+            printf("    -f, --force    \t ignore nonexistent files and arguments, never prompt\n");
+            printf("    -r, -R, --recursive\t remove directories and their contents recursively\n");
+            printf("        --help\t display this help and exit\n\n");
+            
+            printf("By default, rm does not remove directories. Use the --recursive (-r or -R)\n");
+            printf("option to remove each listed directory, too, along with all of its contents.\n");
+            printf("Note that if you use rm to remove a file, it might be possible to recover\n");
+            printf("some of its contents are truly unrecoverable, consider using shred.\n\n");
+            
+            printf("GNU coreutils online help: <https://www.gnu.org/software/coreutils/>\n");
+            printf("Report any translation bugs to <https://translationproject.org/team/>\n");
+            printf("Full documentation <https://www.gnu.org/software/coreutils/mkdir>\n");
+            printf("or available locally via: info '(coreutils) mkdir invocation'\n");
+
+            return -1;
+        }
+        else{
+            str = strtok(cmd, "-");
+            if(str == NULL){
+                printf("rm: cannot remove '-': No such file or directory\n");
+                return -1;
+            }
+            else{
+                printf("rm: invalid option -- '%s'\n", str);
+                printf("Try 'rm —help' for more information.\n");
+                return -1;
+            }
+        }
+    }
+    else{
+        str = strtok(NULL, " ");
+        threadTree[thread_cnt].threadTree = dirTree;
+        threadTree[thread_cnt].option = option;
+        threadTree[thread_cnt++].cmd = cmd;
+    }
+    while (str != NULL) {
+        threadTree[thread_cnt].threadTree = dirTree;
+        threadTree[thread_cnt].option = option;
+        threadTree[thread_cnt++].cmd = str;
+        str = strtok(NULL, " ");
+    }
+    for (int i = 0; i < thread_cnt; i++) {
+        pthread_create(&threadPool[i], NULL, rm_thread, (void *)&threadTree[i]);
+        pthread_join(threadPool[i], NULL);
+    }
+    return 0;
+}
+
 int RemoveDir(DirectoryTree* dirTree, char* dirName)
 {
     DirectoryNode* DelNode = NULL;
@@ -10,7 +106,7 @@ int RemoveDir(DirectoryTree* dirTree, char* dirName)
     tmpNode = dirTree->current->LeftChild;
 
     if(tmpNode == NULL){
-        printf("rm: %s: No such file or directory\n", dirName);
+        printf("rm: cannot remove %s: No such file or directory\n", dirName);
         return -1;
     }
 
@@ -40,7 +136,7 @@ int RemoveDir(DirectoryTree* dirTree, char* dirName)
             DestroyNode(DelNode);
         }
         else{
-            printf("rm: %s: No such file or directory\n", dirName);
+            printf("rm: cannot remove %s: No such file or directory\n", dirName);
             return -1;
         }
     }
@@ -68,15 +164,15 @@ void *rm_thread(void *arg) {
             tmpNode = IsExistDir(dirTree, tmp, 'f');
             tmpNode2 = IsExistDir(dirTree, tmp, 'd');
             if (tmpNode == NULL && tmpNode2 == NULL) {
-                printf("rm: Can not remove '%s': No such file or directory.\n", tmp);
+                printf("rm: cannot remove '%s': No such file or directory.\n", tmp);
                 return NULL;
             }
             if (tmpNode == NULL) {
-                printf("rm: Can not remove '%s': No such file or directory.\n", cmd);
+                printf("rm: cannot remove '%s': No such file or directory.\n", cmd);
                 return NULL;
             } else {
                 if (HasPermission(dirTree->current, 'w') != 0 || HasPermission(tmpNode, 'w') != 0) {
-                    printf("rm: Can not remove '%s': Permission denied.\n", cmd);
+                    printf("rm: cannot remove '%s': Permission denied.\n", cmd);
                     return NULL;
                 }
                 RemoveDir(dirTree, tmp);
@@ -85,7 +181,7 @@ void *rm_thread(void *arg) {
             strncpy(tmp2, getDir(tmp), MAX_DIR);
             int val = MovePath(dirTree, tmp2);
             if (val != 0) {
-                printf("rm: Can not remove '%s': No such file or directory.\n", tmp2);
+                printf("rm: cannot remove '%s': No such file or directory.\n", tmp2);
                 return NULL;
             }
             char *str = strtok(tmp, "/");
@@ -96,17 +192,17 @@ void *rm_thread(void *arg) {
             tmpNode = IsExistDir(dirTree, tmp3, 'f');
             tmpNode2 = IsExistDir(dirTree, tmp3, 'd');
             if (tmpNode2 != NULL) {
-                printf("rm: Can not remove '%s': Is a directory.\n", tmp3);
+                printf("rm: cannot remove '%s': Is a directory.\n", tmp3);
                 dirTree->current = currentNode;
                 return NULL;
             }
             if (tmpNode != NULL) {
-                printf("rm: Can not remove '%s' No such file or directory.\n", tmp3);
+                printf("rm: cannot remove '%s' No such file or directory.\n", tmp3);
                 dirTree->current = currentNode;
                 return NULL;
             } else {
                 if (HasPermission(dirTree->current, 'w') != 0 || HasPermission(tmpNode, 'w') != 0) {
-                    printf("rm: Can not remove '%s' Permission denied.\n", tmp3);
+                    printf("rm: cannot remove '%s': Permission denied.\n", tmp3);
                     dirTree->current = currentNode;
                     return NULL;
                 }
@@ -118,11 +214,11 @@ void *rm_thread(void *arg) {
         if (!strstr(tmp, "/")) {
             tmpNode = IsExistDir(dirTree, tmp, 'd');
             if (tmpNode == NULL) {
-                printf("rm: Can not remove '%s': No such file or directory.\n", tmp);
+                printf("rm: cannot remove '%s': No such file or directory.\n", tmp);
                 return NULL;
             } else {
                 if (HasPermission(dirTree->current, 'w') != 0 || HasPermission(tmpNode, 'w') != 0) {
-                    printf("rm: failed to remove '%s'Can not remove directory or file: Permission denied.", tmp);
+                    printf("rm: cannot remove '%s': Permission denied.", tmp);
                     return NULL;
                 }
                 RemoveDir(dirTree, tmp);
@@ -131,7 +227,7 @@ void *rm_thread(void *arg) {
             strncpy(tmp2, getDir(tmp), MAX_DIR);
             int val = MovePath(dirTree, tmp2);
             if (val != 0) {
-                printf("rm: '%s': No such file or directory.\n", tmp2);
+                printf("rm: cannot remove '%s': No such file or directory.\n", tmp2);
                 return NULL;
             }
             char *str = strtok(tmp, "/");
@@ -142,7 +238,7 @@ void *rm_thread(void *arg) {
             tmpNode = IsExistDir(dirTree, tmp3, 'f');
             tmpNode = IsExistDir(dirTree, tmp3, 'd') == NULL ? tmpNode : IsExistDir(dirTree, tmp3, 'd');
             if (tmpNode != NULL) {
-                printf("rm: Can not remove '%s': No such file or directory.\n", tmp3);
+                printf("rm: cannot remove '%s': No such file or directory.\n", tmp3);
                 dirTree->current = currentNode;
                 return NULL;
             } else {
@@ -225,109 +321,4 @@ void *rm_thread(void *arg) {
         }
     }
     pthread_exit(NULL);
-}
-
-int rm(DirectoryTree* dirTree, char* cmd)          //완료
-{
-    DirectoryNode* currentNode = NULL;
-    DirectoryNode* tmpNode = NULL;
-    DirectoryNode* tmpNode2 = NULL;
-    pthread_t threadPool[MAX_THREAD];
-    ThreadTree threadTree[MAX_THREAD];
-
-    int thread_cnt = 0;
-    char* str;
-    char tmp[MAX_DIR];
-    char tmp2[MAX_DIR];
-    char tmp3[MAX_DIR];
-    int val;
-
-    if(cmd == NULL){
-        printf("Try 'rm --help' for more information.\n");
-        return -1;
-    }
-    currentNode = dirTree->current;
-    if(cmd[0] == '-'){
-        if(strcmp(cmd, "-r") == 0){
-            str = strtok(NULL, " ");
-            if(str == NULL){
-                printf("Try 'rm --help' for more information.\n");
-
-                return -1;
-            }
-            while (str != NULL) {
-                threadTree[thread_cnt].threadTree = dirTree;
-                threadTree[thread_cnt].option = 1;
-                threadTree[thread_cnt++].cmd = str;
-                str = strtok(NULL, " ");
-            }
-        }
-        else if(strcmp(cmd, "-f") == 0){
-            str = strtok(NULL, " ");
-            if(str == NULL){
-                return -1;
-            }
-            while (str != NULL) {
-                threadTree[thread_cnt].threadTree = dirTree;
-                threadTree[thread_cnt].option = 2;
-                threadTree[thread_cnt++].cmd = str;
-                str = strtok(NULL, " ");
-            }
-        }
-        else if(strcmp(cmd, "-rf") == 0 || strcmp(cmd, "-fr")){
-            str = strtok(NULL, " ");
-            if(str == NULL){
-                return -1;
-            }
-            while (str != NULL) {
-                threadTree[thread_cnt].threadTree = dirTree;
-                threadTree[thread_cnt].option = 3;
-                threadTree[thread_cnt++].cmd = str;
-                str = strtok(NULL, " ");
-            }
-        }
-        else if(strcmp(cmd, "--help") == 0){
-            printf("사용법: rm [<옵션>]... [<파일>]...\n");
-            printf("  Remove (unlink) the FILE(s).\n\n");
-            printf("  options:\n");
-            printf("    -f, --force    \t ignore nonexistent files and arguments, never prompt\n");
-            printf("    -r, --recursive\t remove directories and their contents recursively\n");
-            printf("        --help\t 이 도움말을 표시하고 끝냅니다\n");
-            return -1;
-        }
-        else{
-            str = strtok(cmd, "-");
-            if(str == NULL){
-                printf("rm: 잘못된 연산자\n");
-                printf("Try 'rm --help' for more information.\n");
-                return -1;
-            }
-            else{
-                printf("rm: 부적절한 옵션 -- '%s'\n", str);
-                printf("Try 'rm --help' for more information.\n");
-                return -1;
-            }
-        }
-    }
-    else{
-        str = strtok(NULL, " ");
-        threadTree[thread_cnt].threadTree = dirTree;
-        threadTree[thread_cnt].option = 0;
-        threadTree[thread_cnt++].cmd = cmd;
-        if (!cmd) {
-            printf("Try 'rm --help' for more information.\n");
-            return -1;
-        }
-        while (str != NULL) {
-            threadTree[thread_cnt].threadTree = dirTree;
-            threadTree[thread_cnt].option = 0;
-            threadTree[thread_cnt++].cmd = str;
-            str = strtok(NULL, " ");
-        }
-    }
-    for (int i = 0; i < thread_cnt; i++) {
-        pthread_create(&threadPool[i], NULL, rm_thread, (void *)&threadTree[i]);
-        pthread_join(threadPool[i], NULL);
-    }
-    return 0;
 }

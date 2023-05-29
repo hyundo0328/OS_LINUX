@@ -1,37 +1,72 @@
 #include "../include/main.h"
 
-//mkdir
-
-DirectoryTree* InitializeTree()
+int mkdir(DirectoryTree* dirTree, char* cmd)
 {
-    //variables
-    DirectoryTree* dirTree = (DirectoryTree*)malloc(sizeof(DirectoryTree));
-    DirectoryNode* NewNode = (DirectoryNode*)malloc(sizeof(DirectoryNode));
-    //get time
-    time(&ltime);
-    today = localtime(&ltime);
-    //set NewNode
-    strncpy(NewNode->name, "/", MAX_NAME);
-    //rwxr-xr-x
-    NewNode->type ='d';
-    NewNode->mode = 755;
-    Mode2Permission(NewNode);
-    NewNode->UID = usrList->head->UID;
-    NewNode->GID = usrList->head->GID;
-    NewNode->SIZE = 4096;
-    NewNode->month = today->tm_mon+1;
-    NewNode->day = today->tm_mday;
-    NewNode->hour = today->tm_hour;
-    NewNode->minute = today->tm_min;
-    NewNode->Parent = NULL;
-    NewNode->LeftChild = NULL;
-    NewNode->RightSibling = NULL;
-
-    //set dirTree
-    dirTree->root = NewNode;
-    dirTree->current = dirTree->root;
-
-    return dirTree;
+    DirectoryNode* tmpNode = NULL;
+    char* str;
+    char tmp[MAX_DIR];
+    char tmp2[MAX_DIR];
+    char tmp3[MAX_DIR];
+    int val, option = 0;
+    int tmpMode;
+    if(cmd == NULL){ // 아무 method를 입력하지 않았을 때
+        printf("mkdir: missing operand\n");
+        printf("Try 'mkdir --help' for more information.\n");
+        return -1;
+    }
+    
+    int thread_cnt = 0;
+    pthread_t threadPool[MAX_THREAD];
+    ThreadTree threadTree[MAX_THREAD];
+    tmpNode = dirTree->current;
+    if(cmd[0] == '-'){ //옵션 있을 경우
+        if(strcmp(cmd, "-p") == 0){
+            str = strtok(NULL, " ");
+            if(str == NULL){
+                printf("mkdir: missing operand\n");
+                printf("Try 'mkdir --help' for more information.\n");
+                return -1;
+            }
+            option = 1;
+        }
+        else if(strcmp(cmd, "--help") == 0){
+            printf("Usage: mkdir [OPTION]... DIRECTORY...\n");
+            printf("Create the DIRECTORY(ies), if they do not already exists.\n\n");
+            
+            printf("Mandatory arguments to long options are mandatory for short options too.\n");
+            printf("    -m, --mode=MODE\t set file mode (as in chmod)\n");
+            printf("    -p, --parents  \t no error if existing, make parent directories as needed\n");
+            printf("        --help\t display this help and exit\n\n");
+            
+            printf("GNU coreutils online help: <https://www.gnu.org/software/coreutils/>\n");
+            printf("Report any translation bugs to <https://translationproject.org/team/>\n");
+            printf("Full documentation <https://www.gnu.org/software/coreutils/mkdir>\n");
+            printf("or available locally via: info '(coreutils) mkdir invocation'\n");
+            return -1;
+        }
+        else{
+            printf("mkdir: unrecognized option '%s'\n",cmd);
+            printf("Try 'mkdir --help' for more information.\n");
+            return -1;
+        }
+    }
+    else{ //옵션 없을 경우
+        str = strtok(NULL, " ");
+        threadTree[thread_cnt].threadTree = dirTree;
+        threadTree[thread_cnt].option = option;
+        threadTree[thread_cnt++].cmd = cmd;
+    }
+    while(str != NULL){
+        threadTree[thread_cnt].threadTree = dirTree;
+        threadTree[thread_cnt].option = option;
+        threadTree[thread_cnt++].cmd = str;
+        str = strtok(NULL, " ");
+    }
+    for (int i = 0; i < thread_cnt; i++) {
+        pthread_create(&threadPool[i], NULL, mkdir_thread, (void *)&threadTree[i]);
+        pthread_join(threadPool[i], NULL);
+    }
+    return 0;
 }
 
 //type==0: folder, type==1: file
@@ -47,13 +82,13 @@ int MakeDir(DirectoryTree* dirTree, char* dirName, char type)
         return -1;
     }
     if(strcmp(dirName, ".") == 0 || strcmp(dirName, "..") == 0){
-        printf("mkdir: %s: File exists\n", dirName);
+        printf("mkdir: cannot create directory '%s': File exists\n", dirName);
         free(NewNode);
         return -1;
     }
     tmpNode = IsExistDir(dirTree, dirName, type);
     if(tmpNode != NULL && tmpNode->type == 'd'){
-        printf("mkdir: %s: File exists\n", dirName);
+        printf("mkdir: cannot create directory '%s': File exists\n", dirName);
         free(NewNode);
         return -1;
     }
@@ -170,70 +205,4 @@ void *mkdir_thread(void *arg) {
         }
     }
     pthread_exit(NULL);
-}
-
-int mkdir(DirectoryTree* dirTree, char* cmd)        //멀티스레드 구현해야함
-{
-    DirectoryNode* tmpNode = NULL;
-    char* str;
-    char tmp[MAX_DIR];
-    char tmp2[MAX_DIR];
-    char tmp3[MAX_DIR];
-    int val;
-    int tmpMode;
-    if(cmd == NULL){
-        printf("mkdir: 잘못된 연산자\n");
-        printf("Try 'mkdir --help' for more information.\n");
-        return -1;
-    }
-    int thread_cnt = 0;
-    pthread_t threadPool[MAX_THREAD];
-    ThreadTree threadTree[MAX_THREAD];
-    tmpNode = dirTree->current;
-    if(cmd[0] == '-'){ //옵션 있을 경우
-        if(strcmp(cmd, "-p") == 0){
-            str = strtok(NULL, " ");
-            if(str == NULL){
-                printf("mkdir: 잘못된 연산자\n");
-                printf("Try 'mkdir --help' for more information.\n");
-                return -1;
-            }
-            while(str != NULL){
-                threadTree[thread_cnt].threadTree = dirTree;
-                threadTree[thread_cnt].option = 1;
-                threadTree[thread_cnt++].cmd = str;
-                str = strtok(NULL, " ");
-            }
-        }
-        else if(strcmp(cmd, "--help") == 0){
-            printf("사용법: mkdir [옵션]... 디렉터리...\n");
-            printf("  Create the DIRECTORY(ies), if they do not already exists.\n\n");
-            printf("  Options:\n");
-            printf("    -m, --mode=MODE\t set file mode (as in chmod)\n");
-            printf("    -p, --parents  \t no error if existing, make parent directories as needed\n");
-            printf("        --help\t 이 도움말을 표시하고 끝냅니다\n");
-            return -1;
-        }
-        else{
-            printf("Try 'mkdir --help' for more information.\n");
-            return -1;
-        }
-    }
-    else{ //옵션 없을 경우
-        str = strtok(NULL, " ");
-        threadTree[thread_cnt].threadTree = dirTree;
-        threadTree[thread_cnt].option = 0;
-        threadTree[thread_cnt++].cmd = cmd;
-        while (str) {
-            threadTree[thread_cnt].threadTree = dirTree;
-            threadTree[thread_cnt].option = 0;
-            threadTree[thread_cnt++].cmd = str;
-            str = strtok(NULL, " ");
-        }
-    }
-    for (int i = 0; i < thread_cnt; i++) {
-        pthread_create(&threadPool[i], NULL, mkdir_thread, (void *)&threadTree[i]);
-        pthread_join(threadPool[i], NULL);
-    }
-    return 0;
 }

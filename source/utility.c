@@ -153,7 +153,7 @@ void GetMonth(int i)
     }
 }
 
-void GetWeekday(int i)
+void GetWeek(int i)
 {
     switch(i){
     case 0:
@@ -233,21 +233,21 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
     }
     else if(strcmp(str, "chown") == 0){
         str = strtok(NULL, " ");
-        val = chown_(dirTree, str);
+        val = ft_chown(dirTree, str);
         if(val == 0){
             SaveDir(dirTree, dStack);
         }
     }
     else if(strcmp(str, "find") == 0){
         str = strtok(NULL, " ");
-        find_(dirTree, str);
+        find(dirTree, str);
     }
     else if(strcmp(str, "grep") == 0){
         str = strtok(NULL, " ");
         grep(dirTree, str);
     }
     else if(strcmp(cmd, "exit") == 0){
-            printf("로그아웃\n");
+            printf("logout\n");
             exit(0);
     }
     else{
@@ -258,16 +258,8 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
 
 void PrintStart()
 {
-    printf("Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 4.18.0-17-generic x86_64)\n\n");
-    printf(" * Documentation: https://help.ubuntu.com\n");
-    printf(" * Management:    https://landscape.canonial.com\n");
-    printf(" * Support:       https://ubuntu.com/advantage\n\n\n");
-    printf(" * Canonial Livepatch is available for installation.\n");
-    printf("   - Reduce system reboots and improve kernel security. Activate at:\n");
-    printf("     https://ubuntu.com/livepatch\n\n");
-    printf("Your Hardware Enablement Stack(HWE) is supported until April 2023.\n");
     printf("Last login: ");
-    GetWeekday(usrList->current->wday);
+    GetWeek(usrList->current->wday);
     GetMonth(usrList->current->month);
     printf("%d %02d:%02d:%02d %d\n", usrList->current->day, usrList->current->hour, usrList->current->minute, usrList->current->sec, usrList->current->year);
 }
@@ -286,7 +278,7 @@ void PrintHead(DirectoryTree* dirTree, Stack* dirStack)
         usr = '$';
 
     BOLD;GREEN;
-    printf("%s@os-Virtualbox", usrList->current->name);
+    printf("%s@5-os-linux", usrList->current->name);
     DEFAULT;
     printf(":");
     tmpNode = dirTree->current;

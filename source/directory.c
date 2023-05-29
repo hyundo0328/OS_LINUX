@@ -59,6 +59,7 @@ void SaveDir(DirectoryTree* dirTree, Stack* dirStack)
 
     fclose(Dir);
 }
+
 DirectoryTree* LoadDir()
 {
     DirectoryTree* dirTree = (DirectoryTree*)malloc(sizeof(DirectoryTree));

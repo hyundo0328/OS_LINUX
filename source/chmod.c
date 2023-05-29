@@ -1,48 +1,6 @@
 #include "../include/main.h"
 
-//chmod
-int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)
-{
-    DirectoryNode* tmpNode = NULL;
-    DirectoryNode* tmpNode2 = NULL;
-
-    tmpNode = IsExistDir(dirTree, dirName, 'd');
-    tmpNode2 = IsExistDir(dirTree, dirName, 'f');
-
-    if(tmpNode != NULL){
-        if(HasPermission(tmpNode, 'w') != 0){
-            printf("chmod: '%s'파일을 수정할 수 없음: 허가거부\n", dirName);
-            return -1;
-        }
-        tmpNode->mode = mode;
-        Mode2Permission(tmpNode);
-    }
-    else if(tmpNode2 != NULL){
-        if(HasPermission(tmpNode2, 'w') != 0){
-            printf("chmod: '%s'파일을 수정할 수 없음: 허가거부\n", dirName);
-            return -1;
-        }
-        tmpNode2->mode = mode;
-        Mode2Permission(tmpNode2);
-    }
-    else{
-        printf("chmod: '%s에 접근할 수 없습니다: 그런 파일이나 디렉터리가 없습니다\n", dirName);
-        return -1;
-    }
-    return 0;
-}
-
-void *chmod_thread(void *arg) {
-    ThreadTree *threadTree = (ThreadTree *) arg;
-    DirectoryTree *dirTree = threadTree->threadTree;
-    int mode = threadTree->mode;
-    char *cmd = threadTree->cmd;
-    
-    ChangeMode(dirTree, mode, cmd);
-    pthread_exit(NULL);
-}
-
-int chmod(DirectoryTree* dirTree, char* cmd)         //완료
+int chmod(DirectoryTree* dirTree, char* cmd)
 {
     DirectoryNode* tmpNode = NULL;
     pthread_t threadPool[MAX_THREAD];
@@ -53,16 +11,28 @@ int chmod(DirectoryTree* dirTree, char* cmd)         //완료
     int tmp;
 
     if(cmd == NULL){
+        printf("chmod: missing operand\n");
         printf("Try 'chmod --help' for more information.\n");
         return -1;
     }
     if(cmd[0] == '-'){
         if(strcmp(cmd, "--help") == 0){
-            printf("사용법: chmod [옵션]... 8진수-MODE... 디렉터리...\n");
-            printf("  Change the mode of each FILE to MODE.\n\n");
-            printf("  Options:\n");
+            printf("Usage: chmod [OPTION]... MODE[,MODE]... FILE...\n");
+            printf("  or:  chmod [OPTION]... OCTAL-MODE FILE...\n");
+            printf("  or:  chmod [OPTION]... --reference=RFILE FILE...\n");
+            printf("Change the mode of each FILE to MODE.\n");
+            printf("With --reference, change the mode of each FILE to that of RFILE.\n\n");
+            
             printf("    -R, --recursive\t change files and directories recursively\n");
-            printf("        --help\t 이 도움말을 표시하고 끝냅니다\n");
+            printf("        --help\t display this help and exit\n\n");
+            
+            printf("Each MODE is of the form '[ugoa]*([-+=]([rwxXst]*|[ugo]))+|[-+=][0-7]+'.\n\n");
+            
+            printf("Each MODE is of the form '[ugoa]*[-+=]([rwxXst]*|[ugo]))+|[-+=][0-7]+'.\n\n");
+            printf("GNU coreutils online help: <https://www.gnu.org/software/coreutils/>\n");
+            printf("Report any translation bugs to <https://translationproject.org/team/>\n");
+            printf("Full documentation <https://www.gnu.org/software/coreutils/mkdir>\n");
+            printf("or available locally via: info '(coreutils) mkdir invocation'\n");
         }
         return -1;
     }
@@ -82,7 +52,8 @@ int chmod(DirectoryTree* dirTree, char* cmd)         //완료
             }
         }
         else{
-            printf("chmod: Invalid file mode: %s\n", cmd);
+            printf("chmod: missing operand after '%s'\n", cmd);
+            printf("Try 'chmod --help' for more information.\n");
             return -1;
         }
         for (int i = 0; i < thread_cnt; i++) {
@@ -91,4 +62,45 @@ int chmod(DirectoryTree* dirTree, char* cmd)         //완료
         }
     }
     return 0;
+}
+
+int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)
+{
+    DirectoryNode* tmpNode = NULL;
+    DirectoryNode* tmpNode2 = NULL;
+
+    tmpNode = IsExistDir(dirTree, dirName, 'd');
+    tmpNode2 = IsExistDir(dirTree, dirName, 'f');
+
+    if(tmpNode != NULL){
+        if(HasPermission(tmpNode, 'w') != 0){
+            printf("chmod: changing permissions of '%s': Operation not permitted\n", dirName);
+            return -1;
+        }
+        tmpNode->mode = mode;
+        Mode2Permission(tmpNode);
+    }
+    else if(tmpNode2 != NULL){
+        if(HasPermission(tmpNode2, 'w') != 0){
+            printf("chmod: changing permissions of '%s': Operation not permitted\n", dirName);
+            return -1;
+        }
+        tmpNode2->mode = mode;
+        Mode2Permission(tmpNode2);
+    }
+    else if ((tmpNode == NULL) && (tmpNode2 == NULL)){
+        printf("chmod: cannot access '%s': No such file or directory\n", dirName);
+        return -1;
+    }
+    return 0;
+}
+
+void *chmod_thread(void *arg) {
+    ThreadTree *threadTree = (ThreadTree *) arg;
+    DirectoryTree *dirTree = threadTree->threadTree;
+    int mode = threadTree->mode;
+    char *cmd = threadTree->cmd;
+    
+    ChangeMode(dirTree, mode, cmd);
+    pthread_exit(NULL);
 }

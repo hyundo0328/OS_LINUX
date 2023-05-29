@@ -95,12 +95,13 @@ struct tm *today;
 
 //mkdir.c
 int mkdir(DirectoryTree* dirTree, char* cmd);
-DirectoryTree* InitializeTree();
 int MakeDir(DirectoryTree* dirTree, char* dirName, char type);
+void *mkdir_thread(void *arg);
 
 //rm.c
 int rm(DirectoryTree* dirTree, char* cmd);
 int RemoveDir(DirectoryTree* dirTree, char* dirName);
+void *rm_thread(void *arg);
 
 //cd.c
 int cd(DirectoryTree* dirTree, char* cmd);
@@ -118,17 +119,20 @@ int ListDir(DirectoryTree* dirTree, int a, int l);
 //cat.c
 int cat(DirectoryTree* dirTree, char* cmd);
 int Concatenate(DirectoryTree* dirTree, char* fName, int o);
+void *cat_thread(void *arg);
 
 //chmod.c
 int chmod(DirectoryTree* dirTree, char* cmd);
 int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName);
+void *chmod_thread(void *arg);
 
 //chown.c
-int chown_(DirectoryTree* dirTree, char* cmd);
+int ft_chown(DirectoryTree* dirTree, char* cmd);
 int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag);
+void *chown_thread(void *arg);
 
 //find.c
-int find_(DirectoryTree* dirTree, char* cmd);
+int find(DirectoryTree* dirTree, char* cmd);
 int ReadDir(DirectoryTree* dirTree, char* tmp, char* dirName,int o);
 void FindDir(DirectoryTree* dirTree, char* dirName, int o);
 
@@ -143,7 +147,7 @@ void getPath(DirectoryTree* dirTree, DirectoryNode* dirNode, Stack* dirStack);
 void WriteNode(DirectoryTree* dirTree, DirectoryNode* dirNode, Stack* dirStack);
 int ReadNode(DirectoryTree* dirTree, char* tmp);
 void GetMonth(int i);
-void GetWeekday(int i);
+void GetWeek(int i);
 void Instruction(DirectoryTree* dirTree, char* cmd);
 void PrintStart();
 void PrintHead(DirectoryTree* dirTree, Stack* dirStack);

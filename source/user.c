@@ -178,7 +178,7 @@ void Login(UserList* userList, DirectoryTree* dirTree)
     printf("\n");
 
     while(1){
-        printf("Login as: ");
+        printf("Login : ");
         fgets(userName, sizeof(userName), stdin);
         userName[strlen(userName)-1] = '\0';
         if(strcmp(userName, "exit") == 0){
@@ -189,7 +189,7 @@ void Login(UserList* userList, DirectoryTree* dirTree)
             userList->current = tmpUser;
             break;
         }
-        printf("'%s' 유저가 존재하지 않습니다\n", userName);
+        printf("'%s' User does not exists\n", userName);
     }
 
     strcpy(tmp, userList->current->dir);
