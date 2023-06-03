@@ -95,7 +95,7 @@ int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)     //권한 바
     return 0;
 }
 
-void *chmod_thread(void *arg) {
+void *chmod_thread(void *arg) {     //파일마다 스레드로 실행되는 함수
     ThreadTree *threadTree = (ThreadTree *) arg;
     DirectoryTree *dirTree = threadTree->threadTree;
     int mode = threadTree->mode;
