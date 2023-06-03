@@ -110,9 +110,9 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
         tmpUser = IsExistUser(usrList, userName);
         if(tmpUser != NULL){
             if (flag == 0)
-                tmpNode->UID = tmpUser->UID;
+                tmpNode2->UID = tmpUser->UID;
             else
-                tmpNode->GID = tmpUser->GID;
+                tmpNode2->GID = tmpUser->GID;
         }
         else{       //존재하지 않는 유저를 적었을 경우
             printf("chown: missing operand after '%s'\n", userName);
