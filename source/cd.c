@@ -7,12 +7,12 @@ int cd(DirectoryTree* dirTree, char* cmd)
     char tmp[MAX_DIR];
     int val;
 
-    if(cmd == NULL){
+    if(cmd == NULL){    //자신의 홈디렉토리로 이동
         strcpy(tmp, usrList->current->dir);
         MovePath(dirTree, tmp);
     }
-    else if(cmd[0] == '-'){
-        if(strcmp(cmd, "--help") == 0){
+    else if(cmd[0] == '-'){     //옵션이 있을 경우
+        if(strcmp(cmd, "--help") == 0){     //--help 입력시
             printf("cd: cd [-L|[-P [-e]] [-@]] [dir]\n");
             printf("    Change the shell working directory.\n\n");
             
@@ -40,33 +40,33 @@ int cd(DirectoryTree* dirTree, char* cmd)
             printf("-P is used; non-zero otherwise.\n");
         }
         else{
-            str = strtok(cmd, "-");
-            printf("bash: cd: %s: invalid option\n", cmd);
+            cmd = strtok(cmd, "-");     //그 외의 옵션들 에러처리
+            printf("cd: invalid option -- '%s'\n", cmd);
             printf("cd: usage: cd [-L|[-P [-e]] [-@]] [dir]\n");
         }
         return -1;
     }
-    else{
+    else{   //옵션 없을 경우
         tmpNode = IsExistDir(dirTree, cmd, 'd');
         if(tmpNode != NULL){
-            if(HasPermission(tmpNode, 'x') != 0){
+            if(HasPermission(tmpNode, 'x') != 0){       //접근권한이 거부되어 있을 경우
                 printf("cd: %s: Permission denied\n", cmd);
                 return -1;
             }
         }
         tmpNode = IsExistDir(dirTree, cmd,  'f');
-        if(tmpNode != NULL){
+        if(tmpNode != NULL){        //디렉토리가 아닐 경우
             printf("cd: %s: Not a directory\n", cmd);
             return -1;
         }
         val = MovePath(dirTree, cmd);
-        if(val != 0)
-            printf("bash: cd: %s: No such file or directory\n", cmd);
+        if(val != 0)        //파일이 없을 경우
+            printf("cd: %s: No such file or directory\n", cmd);
     }
     return 0;
 }
 
-int Movecurrent(DirectoryTree* dirTree, char* dirPath)
+int Movecurrent(DirectoryTree* dirTree, char* dirPath)      //파일이 있는 디렉토리로 이동
 {
     DirectoryNode* tmpNode = NULL;
 
@@ -78,8 +78,6 @@ int Movecurrent(DirectoryTree* dirTree, char* dirPath)
         }
     }
     else{
-
-        //if input path exist
         tmpNode = IsExistDir(dirTree, dirPath, 'd');
         if(tmpNode != NULL){
             dirTree->current = tmpNode;
@@ -90,7 +88,7 @@ int Movecurrent(DirectoryTree* dirTree, char* dirPath)
     return 0;
 }
 
-int MovePath(DirectoryTree* dirTree, char* dirPath)
+int MovePath(DirectoryTree* dirTree, char* dirPath)     //경로 이동 함수
 {
     //variables
     DirectoryNode* tmpNode = NULL;
@@ -101,24 +99,20 @@ int MovePath(DirectoryTree* dirTree, char* dirPath)
     //set tmp
     strncpy(tmpPath, dirPath, MAX_DIR);
     tmpNode = dirTree->current;
-    //if input is root
-    if(strcmp(dirPath, "/") == 0){
+    if(strcmp(dirPath, "/") == 0){      // 최상위 디렉토리일 경우
         dirTree->current = dirTree->root;
     }
     else{
-        //if input is absolute path
         if(strncmp(dirPath, "/",1) == 0){
             if(strtok(dirPath, "/") == NULL){
                 return -1;
             }
             dirTree->current = dirTree->root;
         }
-        //if input is relative path
         str = strtok(tmpPath, "/");
         while(str != NULL){
             val = Movecurrent(dirTree, str);
-            //if input path doesn't exist
-            if(val != 0){
+            if(val != 0){   //경로가 없을 경우
                 dirTree->current = tmpNode;
                 return -1;
             }
