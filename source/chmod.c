@@ -10,13 +10,13 @@ int chmod(DirectoryTree* dirTree, char* cmd)
     char* str;
     int tmp;
 
-    if(cmd == NULL){
+    if(cmd == NULL){    //chmod 외에 아무것도 적히지 않았을 때
         printf("chmod: missing operand\n");
         printf("Try 'chmod --help' for more information.\n");
         return -1;
     }
-    if(cmd[0] == '-'){
-        if(strcmp(cmd, "--help") == 0){
+    if(cmd[0] == '-'){      //옵션 있을 경우
+        if(strcmp(cmd, "--help") == 0){     //--help 입력했을 때
             printf("Usage: chmod [OPTION]... MODE[,MODE]... FILE...\n");
             printf("  or:  chmod [OPTION]... OCTAL-MODE FILE...\n");
             printf("  or:  chmod [OPTION]... --reference=RFILE FILE...\n");
@@ -36,15 +36,15 @@ int chmod(DirectoryTree* dirTree, char* cmd)
         }
         return -1;
     }
-    else{
-        if(cmd[0]-'0'<8 && cmd[1]-'0'<8 && cmd[2]-'0'<8 && strlen(cmd)==3){
+    else{       //옵션 없을 경우
+        if(cmd[0]-'0'<8 && cmd[1]-'0'<8 && cmd[2]-'0'<8 && strlen(cmd)==3){     //숫자로 표현된 권한을 넣어주기 위해(0-7까지)
             tmp = atoi(cmd);
             str = strtok(NULL, " ");
             if(str == NULL){
                 printf("Try 'chmod --help' for more information.\n");
                 return -1;
             }
-            while (str) {
+            while (str) {       //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
                 threadTree[thread_cnt].threadTree = dirTree;
                 threadTree[thread_cnt].cmd = str;
                 threadTree[thread_cnt++].mode = tmp;
@@ -56,7 +56,7 @@ int chmod(DirectoryTree* dirTree, char* cmd)
             printf("Try 'chmod --help' for more information.\n");
             return -1;
         }
-        for (int i = 0; i < thread_cnt; i++) {
+        for (int i = 0; i < thread_cnt; i++) {      //pthread생성 후 chmod_thread로 처리, 마지막으로 join
             pthread_create(&threadPool[i], NULL, chmod_thread, (void*)&threadTree[i]);
             pthread_join(threadPool[i], NULL);
         }
@@ -64,7 +64,7 @@ int chmod(DirectoryTree* dirTree, char* cmd)
     return 0;
 }
 
-int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)
+int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)     //권한 바꿔주는 함수
 {
     DirectoryNode* tmpNode = NULL;
     DirectoryNode* tmpNode2 = NULL;
@@ -73,7 +73,7 @@ int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)
     tmpNode2 = IsExistDir(dirTree, dirName, 'f');
 
     if(tmpNode != NULL){
-        if(HasPermission(tmpNode, 'w') != 0){
+        if(HasPermission(tmpNode, 'w') != 0){   //허가권한이 거부되었을 때
             printf("chmod: changing permissions of '%s': Operation not permitted\n", dirName);
             return -1;
         }
@@ -81,14 +81,14 @@ int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)
         Mode2Permission(tmpNode);
     }
     else if(tmpNode2 != NULL){
-        if(HasPermission(tmpNode2, 'w') != 0){
+        if(HasPermission(tmpNode2, 'w') != 0){      //허가권한이 거부되었을 때
             printf("chmod: changing permissions of '%s': Operation not permitted\n", dirName);
             return -1;
         }
         tmpNode2->mode = mode;
         Mode2Permission(tmpNode2);
     }
-    else if ((tmpNode == NULL) && (tmpNode2 == NULL)){
+    else if ((tmpNode == NULL) && (tmpNode2 == NULL)){      //파일 또는 디렉토리가 없을 때
         printf("chmod: cannot access '%s': No such file or directory\n", dirName);
         return -1;
     }
