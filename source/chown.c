@@ -121,7 +121,7 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
         }
     }
     else{
-        printf("chown: invalid user: %s\n", dirName);   //파일 또는 디렉토리가 없을 경우
+        printf("chown: cannot access '%s': No such file or directory\n", dirName);   //파일 또는 디렉토리가 없을 경우
         return -1;
     }
 
