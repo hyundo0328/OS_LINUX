@@ -1,7 +1,7 @@
 CC = gcc
 RM = rm -rf
 TARGET = OSLINUX
-CFLAG = -fcommon
+CFLAG = -fcommon -w
 SRC_DIR = source
 INCS = include
 
