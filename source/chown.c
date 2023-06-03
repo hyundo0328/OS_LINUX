@@ -1,6 +1,6 @@
 #include "../include/main.h"
 
-int ft_chown(DirectoryTree* dirTree, char* cmd)      //완료
+int ft_chown(DirectoryTree* dirTree, char* cmd)
 {
     DirectoryNode* tmpNode = NULL;
     UserNode* tmpUser = NULL;
@@ -11,13 +11,13 @@ int ft_chown(DirectoryTree* dirTree, char* cmd)      //완료
     char* str;
     char tmp[MAX_NAME];
 
-    if(cmd == NULL){
+    if(cmd == NULL){        //chown 외에 아무것도 적지 않았을 경우
         printf("chown: missing operand\n");
         printf("Try 'chown --help' for more information.\n");
         return -1;
     }
-    if(cmd[0] == '-'){
-        if(strcmp(cmd, "--help") == 0){
+    if(cmd[0] == '-'){      //옵션이 있을 경우
+        if(strcmp(cmd, "--help") == 0){     //--help를 입력했을 때
             printf("Usage: chown [OPTION]... [OWNER][:[GROUP]] FILE...\n");
             printf("  or:  chown [OPTION]... --reference=RFILE FILE\n");
             printf("Change the owner and/or group of each FILE to OWNER and/or GROUP.\n");
@@ -45,7 +45,7 @@ int ft_chown(DirectoryTree* dirTree, char* cmd)      //완료
             printf("Full documentation <https://www.gnu.org/software/coreutils/mkdir>\n");
             printf("or available locally via: info '(coreutils) mkdir invocation'\n");
         }
-        else {
+        else {      //그 외의 옵션 에러처리
             printf("chown: unrecognized option '%s'\n", cmd);
             printf("Try 'chown --help' for more information\n");
         }
@@ -54,12 +54,12 @@ int ft_chown(DirectoryTree* dirTree, char* cmd)      //완료
     else{
         strncpy(tmp, cmd, MAX_NAME);
         str = strtok(NULL, " ");
-        if(str == NULL){
+        if(str == NULL){        //파일 또는 디렉토리를 적지 않았을 경우
             printf("Try 'chown --help' for more information.\n");
             return -1;
         }
         else{
-            while (str) {
+            while (str) {        //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
                 threadTree[thread_cnt].threadTree = dirTree;
                 threadTree[thread_cnt].username = tmp;
                 threadTree[thread_cnt++].cmd = str;
@@ -67,14 +67,14 @@ int ft_chown(DirectoryTree* dirTree, char* cmd)      //완료
             }
         }
     }
-    for (int i = 0; i < thread_cnt; i++) {
+    for (int i = 0; i < thread_cnt; i++) {      //pthread생성 후 chmod_thread로 처리, 마지막으로 join
         pthread_create(&threadPool[i], NULL, chown_thread, (void*)&threadTree[i]);
         pthread_join(threadPool[i], NULL);
     }
     return 0;
 }
 
-int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
+int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)        //허가권한 바꿔주는 함수
 {
     DirectoryNode* tmpNode = NULL;
     DirectoryNode* tmpNode2 = NULL;
@@ -85,7 +85,7 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
 
 
     if(tmpNode != NULL){
-        if(HasPermission(tmpNode, 'w') != 0){
+        if(HasPermission(tmpNode, 'w') != 0){       //허가권한이 거부되었을 때
             printf("chown: changing ownership of '%s': Operation not permitted\n", dirName);
             return -1;
         }
@@ -96,14 +96,14 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
             else
                 tmpNode->GID = tmpUser->GID;
         }
-        else{
+        else{       //존재하지 않는 유저를 적었을 경우
             printf("chown: missing operand after '%s'\n", userName);
             printf("Try 'chown --help' for more information.\n");
             return -1;
         }
     }
     else if(tmpNode2 != NULL){
-        if(HasPermission(tmpNode2, 'w') != 0){
+        if(HasPermission(tmpNode2, 'w') != 0){      //허가권한이 거부되었을 때
             printf("chown: changing ownership of '%s': Operation not permitted\n", dirName);
             return -1;
         }
@@ -114,41 +114,41 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
             else
                 tmpNode->GID = tmpUser->GID;
         }
-        else{
+        else{       //존재하지 않는 유저를 적었을 경우
             printf("chown: missing operand after '%s'\n", userName);
             printf("Try 'chown --help' for more information.\n");
             return -1;
         }
     }
     else{
-        printf("chown: invalid user: %s\n", dirName);
+        printf("chown: invalid user: %s\n", dirName);   //파일 또는 디렉토리가 없을 경우
         return -1;
     }
 
     return 0;
 }
 
-void *chown_thread(void *arg) {
+void *chown_thread(void *arg) {     //파일마다 스레드로 실행되는 함수
     ThreadTree *threadTree = (ThreadTree *)arg;
     DirectoryTree *dirTree = threadTree->threadTree;
     char *cmd = threadTree->cmd;
     char *tmp = threadTree->username;
     char *str;
 
-    if(!strstr(tmp, ":")) 
-        ChangeOwner(dirTree, tmp, cmd, 0);
+    if(!strstr(tmp, ":"))
+        ChangeOwner(dirTree, tmp, cmd, 0);      //userid 바꿔주기
     else {
         char tmp2[MAX_NAME];
         strncpy(tmp2, tmp, MAX_NAME);
         char *str2 = strtok(tmp, ":");
         if (str2 != NULL && strcmp(tmp, tmp2) != 0){
-            ChangeOwner(dirTree, str2, cmd, 0);
+            ChangeOwner(dirTree, str2, cmd, 0);     //userid 바꿔주기
             str2 = strtok(NULL, " ");
             if (str2 != NULL)
-                ChangeOwner(dirTree, str2, cmd, 1);
+                ChangeOwner(dirTree, str2, cmd, 1);     //groupid 바꿔주기
         }
         else if (str2 != NULL && strcmp(tmp, tmp2) == 0)
-            ChangeOwner(dirTree, str2, cmd, 1);
+            ChangeOwner(dirTree, str2, cmd, 1);     //groupid 바꿔주기
     }
     pthread_exit(NULL);
 }
