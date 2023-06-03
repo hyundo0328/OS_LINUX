@@ -14,37 +14,33 @@ int cat(DirectoryTree* dirTree, char* cmd)
     char tmp2[MAX_DIR];
     char tmp3[MAX_DIR];
     int val, option = 1;
-    /**
-        cat0: write, EOF to save
-        cat1: read
-        cat2: read w/ line number
-    **/
-    if(cmd == NULL){
+
+    if(cmd == NULL){    //cat 이외에 옵션, 파일이름 모두 입력 안했을 때
         char buf[MAX_BUFFER];
         char *buf2 = (char*)malloc(MAX_BUFFER);
         int num = 0;
-       while(fgets(buf, sizeof(buf), stdin)){
+       while(fgets(buf, sizeof(buf), stdin)){   //표준입력을 받아주며 한 줄을 입력할 때 마다 출력해줌
             buf2 = strcpy(buf2, buf);
             printf("%s", buf2);
         }
-        rewind(stdin);
+        rewind(stdin);  //ctrl+d를 누르면 탈출
         return -1;
     }
     currentNode = dirTree->current;
 
-    if(strcmp(cmd, ">") == 0){
+    if(strcmp(cmd, ">") == 0){  // > 옵션일 때
         str = strtok(NULL, " ");
         if(str == NULL){
             printf("bash: sysntax error near unexpected token 'newline'\n");
             return -1;
         }
         strncpy(tmp, str, MAX_DIR);
-        if(strstr(str, "/") == NULL){
+        if(strstr(str, "/") == NULL){       //현재 디렉토리 안의 파일 불러올 경우
             if(HasPermission(dirTree->current, 'w') != 0){
                 printf("cat: cannot create directory: '%s': Permission denied\n", dirTree->current->name);
                 return -1;
             }
-            tmpNode = IsExistDir(dirTree, str, 'd');
+            tmpNode = IsExistDir(dirTree, str, 'd');    //디렉토리일 경우
             if(tmpNode != NULL || strcmp(str, ".") == 0 || strcmp(str, "..") == 0){
                 printf("cat: cannot create directory: '%s': Is a directory\n", str);
                 return -1;
@@ -52,7 +48,7 @@ int cat(DirectoryTree* dirTree, char* cmd)
             else
                 Concatenate(dirTree, str, 0);
         }
-        else{
+        else{       //그 외에 다른 디렉토리에서 파일을 불러올 경우
             strncpy(tmp2, getDir(str), MAX_DIR);
             val = MovePath(dirTree, tmp2);
             if(val != 0){
@@ -81,8 +77,8 @@ int cat(DirectoryTree* dirTree, char* cmd)
         }
         return 0;
     }
-    else if(cmd[0] == '-'){
-        if(strcmp(cmd, "-n")== 0){
+    else if(cmd[0] == '-'){     //옵션이 있을 때
+        if(strcmp(cmd, "-n")== 0){      //n 옵션일 때
             str = strtok(NULL, " ");
             if (str == NULL) {
                 char buf[MAX_BUFFER];
@@ -98,7 +94,7 @@ int cat(DirectoryTree* dirTree, char* cmd)
             }
             option = 2;
         }
-        else if(strcmp(cmd, "--help") == 0){
+        else if(strcmp(cmd, "--help") == 0){    //--help 입력시
             printf("Usage: cat [OPTION]... [FILE]...\n");
             printf("Concatenate FILE(s) to standard output.\n\n");
   
@@ -117,40 +113,37 @@ int cat(DirectoryTree* dirTree, char* cmd)
             printf("or available locally via: info '(coreutils) mkdir invocation'\n");
             return -1;
         }
-        else{
-            printf("cat: option '--n' is ambiguous; possibilities: '--number-nonblank' '--number\n");
+        else{   //그 외의 옵션을 입력했을 때 에러문
+            cmd = strtok(cmd, "-");
+            printf("cat: invalid option -- '%s'\n", cmd);
             printf("Try 'cat --help' for more information.\n");
             return -1;
         }
     }
-    else{
+    else{   //옵션이 없이 사용했을 때
         if(strcmp(cmd, "/etc/passwd") == 0){
             Concatenate(dirTree, cmd, 3);
             return 0;
-        }
-        if (cmd == NULL){
-            printf("Try 'rm --help' for more information.\n");
-            return -1;
         }
         str = strtok(NULL, " ");
         threadTree[thread_cnt].threadTree = dirTree;
         threadTree[thread_cnt].option = option;
         threadTree[thread_cnt++].cmd = cmd;
     }
-    while (str != NULL) {
+    while (str != NULL) {   //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
         threadTree[thread_cnt].threadTree = dirTree;
         threadTree[thread_cnt].option = option;
         threadTree[thread_cnt++].cmd = str;
         str = strtok(NULL, " ");
     }
-    for (int i = 0; i < thread_cnt; i++) {
+    for (int i = 0; i < thread_cnt; i++) {      //pthread생성 후 cat_thread로 처리, 마지막으로 join
         pthread_create(&threadPool[i], NULL, cat_thread, (void*)&threadTree[i]);
         pthread_join(threadPool[i], NULL);
     }
     return 1;
 }
 
-void *cat_thread(void *arg) {
+void *cat_thread(void *arg) {   //파일마다 실행되는 함수
     ThreadTree *threadTree = (ThreadTree *)arg;
     DirectoryTree *dirTree = threadTree->threadTree;
     char *cmd = threadTree->cmd;
@@ -165,7 +158,7 @@ void *cat_thread(void *arg) {
     int val;
 
     strncpy(tmp, cmd, MAX_DIR);
-    if (strstr(tmp, "/") == NULL) {            
+    if (strstr(tmp, "/") == NULL) {     //위치한 디렉토리 안에 있는 파일일 경우
         if (HasPermission(dirTree->current, 'w')) {
             printf("cat: Can not create file '%s': Permission denied\n", dirTree->current->name);
             return NULL;
@@ -186,10 +179,10 @@ void *cat_thread(void *arg) {
         } else 
             Concatenate(dirTree, cmd, option);
     }
-    else {
+    else {      //그 외에 다른 디렉토리 안에 있는 파일 불러올 경우
         strncpy(tmp2, getDir(tmp), MAX_DIR);
         val = MovePath(dirTree, tmp2);
-        if (val) {
+        if (val) {      //파일 경로가 존재하지 않을 경우
             printf("cat: '%s': No such file or directory.\n", tmp2);
             return NULL;
         }
@@ -205,17 +198,17 @@ void *cat_thread(void *arg) {
         }
         tmpNode = IsExistDir(dirTree, tmp3, 'd');
         tmpNode2 = IsExistDir(dirTree, tmp3, 'f');
-        if(tmpNode == NULL && tmpNode2 == NULL) {
+        if(tmpNode == NULL && tmpNode2 == NULL) {       //파일이 존재하지 않을 경우
             printf("cat: '%s': No such file or directory.\n", tmp3);
             dirTree->current = currentNode;
             return NULL;
         } 
-        else if (tmpNode != NULL && tmpNode2 == NULL) {
+        else if (tmpNode != NULL && tmpNode2 == NULL) {     //디렉토리일 경우
             printf("cat: '%s': Is a directory\n", tmp3);
             dirTree->current = currentNode;
             return NULL;
         } 
-        else if (tmpNode2 != NULL && HasPermission(tmpNode2, 'r') != 0) {
+        else if (tmpNode2 != NULL && HasPermission(tmpNode2, 'r') != 0) {       //권한때문에 허가거부된 경우
             printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
             dirTree->current = currentNode;
             return NULL;
@@ -224,10 +217,10 @@ void *cat_thread(void *arg) {
             Concatenate(dirTree, tmp3, option);
         dirTree->current = currentNode;
     }
-    pthread_exit(NULL);
+    pthread_exit(NULL);     //스레드 실행 끝
 }
 //cat
-int Concatenate(DirectoryTree* dirTree, char* fName, int o)
+int Concatenate(DirectoryTree* dirTree, char* fName, int o)     //cat명령어 수행을 본격적으로 해주는 함수
 {
     UserNode* tmpUser = NULL;
     DirectoryNode* tmpNode = NULL;
@@ -240,7 +233,7 @@ int Concatenate(DirectoryTree* dirTree, char* fName, int o)
 
     //file read
     if(o != 0){
-        if(o == 3){
+        if(o == 3){     // /etc/passwd에 들어갈 경우
             tmpUser = usrList->head;
             while(tmpUser != NULL){
                 printf("%s:x:%d:%d:%s:%s\n", tmpUser->name, tmpUser->UID, tmpUser->GID, tmpUser->name, tmpUser->dir);
@@ -260,8 +253,7 @@ int Concatenate(DirectoryTree* dirTree, char* fName, int o)
             if(feof(fp) != 0){
                 break;
             }
-            //w/ line number
-            if(o == 2){
+            if(o == 2){     // n 옵션일 경우
                 if(buf[strlen(buf)-1] == '\n'){
                     printf("     %d\t",cnt);
                     cnt++;
@@ -272,8 +264,7 @@ int Concatenate(DirectoryTree* dirTree, char* fName, int o)
 
         fclose(fp);
     }
-    //file write
-    else{
+    else{       // > 옵션일 때
         fp = fopen(fName, "w");
        while(fgets(buf, sizeof(buf), stdin)){
             fputs(buf, fp);
@@ -294,8 +285,7 @@ int Concatenate(DirectoryTree* dirTree, char* fName, int o)
             tmpNode->hour = today->tm_hour;
             tmpNode->minute = today->tm_min;
         }
-        //if file doesn't exist
-        else{
+        else{       //파일 없을 경우 생성
             MakeDir(dirTree, fName, 'f');
         }
         //write size
