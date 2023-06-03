@@ -2,7 +2,7 @@
 
 int main()
 {
-    char cmd[50];
+    char cmd[100];
     Linux = LoadDir();
     usrList = LoadUserList();
     dStack = InitializeStack();

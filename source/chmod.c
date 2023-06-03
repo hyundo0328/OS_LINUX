@@ -40,7 +40,7 @@ int chmod(DirectoryTree* dirTree, char* cmd)
         if(cmd[0]-'0'<8 && cmd[1]-'0'<8 && cmd[2]-'0'<8 && strlen(cmd)==3){     //숫자로 표현된 권한을 넣어주기 위해(0-7까지)
             tmp = atoi(cmd);
             str = strtok(NULL, " ");
-            if(str == NULL){
+            if(str == NULL){        //파일 또는 디렉토리 입력하지 않았을 경우
                 printf("Try 'chmod --help' for more information.\n");
                 return -1;
             }

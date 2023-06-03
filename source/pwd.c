@@ -29,22 +29,18 @@ int pwd(DirectoryTree* dirTree, Stack* dirStack, char* cmd)
 
 int PrintPath(DirectoryTree* dirTree, Stack* dirStack)
 {
-    //variables
     DirectoryNode* tmpNode = NULL;
 
     tmpNode = dirTree->current;
 
-    //if current directory is root
     if(tmpNode == dirTree->root){
         printf("/");
     }
     else{
-        //until current directory is root, repeat Push
         while(tmpNode->Parent != NULL){
             Push(dirStack, tmpNode->name);
             tmpNode = tmpNode->Parent;
         }
-    //until stack is empty, repeat Pop
         while(IsEmpty(dirStack) == 0){
             printf("/");
             printf("%s",Pop(dirStack));

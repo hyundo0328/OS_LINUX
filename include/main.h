@@ -133,8 +133,9 @@ void *chown_thread(void *arg);
 
 //find.c
 int find(DirectoryTree* dirTree, char* cmd);
-int ReadDir(DirectoryTree* dirTree, char* tmp, char* dirName,int o);
-void FindDir(DirectoryTree* dirTree, char* dirName, int o);
+int ReadDir(DirectoryTree* dirTree, char* tmp, char* dirName);
+void FindDir(DirectoryTree* dirTree, char* dirName);
+void *find_thread(void *arg);
 
 //grep.c
 int grep_print(DirectoryTree* dirTree, char *search, char* fName, int o);

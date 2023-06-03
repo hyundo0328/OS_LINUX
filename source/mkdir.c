@@ -69,10 +69,8 @@ int mkdir(DirectoryTree* dirTree, char* cmd)
     return 0;
 }
 
-//type==0: folder, type==1: file
 int MakeDir(DirectoryTree* dirTree, char* dirName, char type)
 {
-    //variables
     DirectoryNode* NewNode = (DirectoryNode*)malloc(sizeof(DirectoryNode));
     DirectoryNode* tmpNode = NULL;
 
@@ -92,31 +90,25 @@ int MakeDir(DirectoryTree* dirTree, char* dirName, char type)
         free(NewNode);
         return -1;
     }
-    //get time
     time(&ltime);
     today = localtime(&ltime);
 
-    //initialize NewNode
     NewNode->LeftChild = NULL;
     NewNode->RightSibling = NULL;
 
-    //set NewNode
     strncpy(NewNode->name, dirName, MAX_NAME);
     if(dirName[0] == '.'){
 	    NewNode->type = 'd';
-        //rwx------
         NewNode->mode = 700;
         NewNode->SIZE = 4096;
     }
     else if(type == 'd'){
         NewNode->type = 'd';
-        //rwxr-xr-x
         NewNode->mode = 755;
         NewNode->SIZE = 4096;
     }
     else{
         NewNode->type = 'f';
-        //rw-r--r--
         NewNode->mode = 644;
         NewNode->SIZE = 0;
     }

@@ -11,8 +11,8 @@ int ls(DirectoryTree* dirTree, char* cmd)
         return 0;
     }
 
-    if (cmd[0] == '-') {
-        if (strcmp(cmd, "-al") == 0 || strcmp(cmd, "-la") == 0) {
+    if (cmd[0] == '-') {    //옵션이 있을 경우
+        if (strcmp(cmd, "-al") == 0 || strcmp(cmd, "-la") == 0) {       //옵션이 -al, -la일 경우
             str = strtok(NULL, " ");
             if (str != NULL) {
                 tmpNode = dirTree->current;
@@ -22,7 +22,7 @@ int ls(DirectoryTree* dirTree, char* cmd)
             }
             ListDir(dirTree, 1, 1);
         }
-        else if (strcmp(cmd, "-l") == 0) {
+        else if (strcmp(cmd, "-l") == 0) {      //옵션이 -l일 경우
             str = strtok(NULL, " ");
             if (str != NULL) {
                 tmpNode = dirTree->current;
@@ -32,7 +32,7 @@ int ls(DirectoryTree* dirTree, char* cmd)
             }
             ListDir(dirTree, 0, 1);
         }
-        else if (strcmp(cmd, "-a") == 0) {
+        else if (strcmp(cmd, "-a") == 0) {      //옵션이 -a일 경우
             str = strtok(NULL, " ");
             if (str != NULL) {
                 tmpNode = dirTree->current;
@@ -78,18 +78,11 @@ int ls(DirectoryTree* dirTree, char* cmd)
             printf("or available locally via: info '(coreutils) mkdir invocation'\n");
             return -1;
         }
-        else {
+        else {      //옵션이 없을 경우
             str = strtok(cmd, "-");
-            if (str == NULL) {
-                printf("ls: invalid option -- '%s'\n", cmd);
-                printf("Try 'ls --help' for more information.\n");
-                return -1;
-            }
-            else {
-                printf("ls: invalid option -- '%s'\n", cmd);
-                printf("Try 'ls --help' for more information.\n");
-                return -1;
-            }
+            printf("ls: invalid option -- '%s'\n", str);
+            printf("Try 'ls --help' for more information.\n");
+            return -1;
         }
     }
     else {

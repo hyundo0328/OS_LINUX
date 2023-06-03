@@ -5,10 +5,8 @@ void DestroyNode(DirectoryNode* dirNode)
     free(dirNode);
 }
 
-//save & load
 void getPath(DirectoryTree* dirTree, DirectoryNode* dirNode, Stack* dirStack)
 {
-    //variables
     DirectoryNode* tmpNode = NULL;
     char tmp[MAX_DIR] = "";
 
@@ -18,18 +16,15 @@ void getPath(DirectoryTree* dirTree, DirectoryNode* dirNode, Stack* dirStack)
         strcpy(tmp, "/");
     }
     else{
-        //until current directory is root, repeat Push
         while(tmpNode->Parent != NULL){
             Push(dirStack, tmpNode->name);
             tmpNode = tmpNode->Parent;
         }
-    //until stack is empty, repeat Pop
         while(IsEmpty(dirStack) == 0){
                 strcat(tmp, "/");
                 strcat(tmp ,Pop(dirStack));
         }
     }
-    //return path;
     fprintf(Dir, " %s\n", tmp);
 }
 
@@ -191,62 +186,62 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
     }
     str = strtok(cmd, " ");
 
-    if(strcmp(str, "mkdir") == 0){
+    if(strcasecmp(str, "mkdir") == 0){
         str = strtok(NULL, " ");
         val = mkdir(dirTree, str);
         if(val == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcmp(str, "rm") == 0){
+    else if(strcasecmp(str, "rm") == 0){
         str = strtok(NULL, " ");
         val = rm(dirTree, str);
         if(val == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcmp(str, "cd") == 0){
+    else if(strcasecmp(str, "cd") == 0){
         str = strtok(NULL, " ");
         cd(dirTree, str);
     }
-    else if(strcmp(str, "pwd") == 0){
-        str = strtok(NULL, " ");
-        pwd(dirTree, dStack, str);
-    }
-    else if(strcmp(str, "ls") == 0){
+    else if(strcasecmp(str, "ls") == 0){
         str = strtok(NULL, " ");
         ls(dirTree, str);
     }
-    else if(strcmp(str, "cat") == 0){
+    else if(strcasecmp(str, "cat") == 0){
         str = strtok(NULL, " ");
         val = cat(dirTree, str);
         if(val == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcmp(str, "chmod") == 0){
+    else if(strcasecmp(str, "grep") == 0){
+        str = strtok(NULL, " ");
+        grep(dirTree, str);
+    }
+    else if(strcasecmp(str, "chmod") == 0){
         str = strtok(NULL, " ");
         val = chmod(dirTree, str);
         if(val == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcmp(str, "chown") == 0){
+    else if(strcasecmp(str, "chown") == 0){
         str = strtok(NULL, " ");
         val = ft_chown(dirTree, str);
         if(val == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcmp(str, "find") == 0){
+    else if(strcasecmp(str, "pwd") == 0){
+        str = strtok(NULL, " ");
+        pwd(dirTree, dStack, str);
+    }
+    else if(strcasecmp(str, "find") == 0){
         str = strtok(NULL, " ");
         find(dirTree, str);
     }
-    else if(strcmp(str, "grep") == 0){
-        str = strtok(NULL, " ");
-        grep(dirTree, str);
-    }
-    else if(strcmp(cmd, "exit") == 0){
+    else if(strcasecmp(cmd, "exit") == 0){
             printf("logout\n");
             exit(0);
     }

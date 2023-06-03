@@ -49,6 +49,11 @@ int cat(DirectoryTree* dirTree, char* cmd)
                 Concatenate(dirTree, str, 0);
         }
         else{       //그 외에 다른 디렉토리에서 파일을 불러올 경우
+            if (strcmp(str, "/") == 0)
+            {
+                printf("cat: cannot create directory: '/': Is a directory\n");
+                return -1;
+            }
             strncpy(tmp2, getDir(str), MAX_DIR);
             val = MovePath(dirTree, tmp2);
             if(val != 0){

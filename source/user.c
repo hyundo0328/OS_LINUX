@@ -92,7 +92,7 @@ int ReadUser(UserList* userList, char* tmp)
     str[strlen(str)-1] = '\0';
     strncpy(NewNode->dir, str, MAX_DIR);
 
-    if(strcmp(NewNode->name, "root") == 0){
+    if(strcasecmp(NewNode->name, "root") == 0){
         userList->head = NewNode;
         userList->tail = NewNode;
     }
@@ -128,7 +128,7 @@ UserNode* IsExistUser(UserList* userList, char* userName)
     returnUser = userList->head;
 
     while(returnUser != NULL){
-        if(strcmp(returnUser->name, userName) == 0)
+        if(strcasecmp(returnUser->name, userName) == 0)
             break;
         returnUser = returnUser->LinkNode;
     }
