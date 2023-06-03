@@ -16,13 +16,13 @@ int grep(DirectoryTree* dirTree, char* cmd)
     char tmp3[MAX_DIR];
     int val, option = 0;
 
-    if (cmd == NULL) {
+    if (cmd == NULL) {      //grep 뒤에 아무것도 안적었을 경우
         printf("Usage: grep [OPTION]... PATTERNS [FILE]\n");
         printf("Try 'grep --help' for more information.\n");
         return -1;
     }
     currentNode = dirTree->current;
-    if (cmd[0] == '-') {
+    if (cmd[0] == '-') {    //옵션이 입력되었을 경우
         if (strcmp(cmd, "-n") == 0)
             option = 1;
         else if (strcmp(cmd, "-v") == 0)
@@ -65,7 +65,7 @@ int grep(DirectoryTree* dirTree, char* cmd)
             printf("General help using GNU software: <https://www.gnu.org/gethelp/>\n");
             return -1;
         }
-        else {
+        else {      //나머지 옵션들 에러처리
             printf("grep: inrecognized option '%s'\n", cmd);
             printf("Usage: grep [OPTION]... PATTERNS [FILE]\n");
             printf("Try 'grep --help' for more information.\n");
@@ -74,27 +74,27 @@ int grep(DirectoryTree* dirTree, char* cmd)
         str = strtok(NULL, " ");
         strncpy(con, str, MAX_BUFFER);
         str = strtok(NULL, " ");
-        if (str == NULL) {
+        if (str == NULL) {      //옵션 뒤에 명령할 파일이 없을 경우
             printf("Try 'grep --help' for more information.\n");
             return -1;
         }
     }
-    else {
+    else {      //옵션이 없을 경우
         strncpy(con, cmd, MAX_BUFFER);
         str = strtok(NULL, " ");
-        if (str == NULL) {
+        if (str == NULL) {      //명령할 파일이 입력되지 않을 경우
             printf("Try 'grep --help' for more information.\n");
             return -1;
         }
     }
-    while (str != NULL) {
+    while (str != NULL) {       //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
         threadTree[thread_cnt].threadTree = dirTree;
         threadTree[thread_cnt].option = option;
         threadTree[thread_cnt].content = con;
         threadTree[thread_cnt++].cmd = str;
         str = strtok(NULL, " ");
     }
-    for (int i = 0; i < thread_cnt; i++) {
+    for (int i = 0; i < thread_cnt; i++) {       //pthread생성 후 cat_thread로 처리, 마지막으로 join
         pthread_create(&threadPool[i], NULL, grep_thread, (void*)&threadTree[i]);
         pthread_join(threadPool[i], NULL);
     }
@@ -112,55 +112,49 @@ int grep_print(DirectoryTree* dirTree, char* search, char* fName, int o)
     int tmpSIZE = 0;
     int cnt = 1;
 
-    //file read
-    tmpNode = IsExistDir(dirTree, fName, 'f');
-
-    if (tmpNode == NULL) {
-        return -1;
-    }
     fp = fopen(fName, "r");
 
     while (feof(fp) == 0) {
         fgets(buf, sizeof(buf), fp);
         if (feof(fp) != 0) {
             break;
-        }
-        else if (o == 0)
+        }   //옵션에 따라 프린트
+        else if (o == 0)    //옵션 x
         {
             if (strstr(buf, search) != NULL)
                 printf("%s:%s", fName, buf);
         }
-        else if (o == 1)
+        else if (o == 1)    //n 옵션
         {
             if (strstr(buf, search) != NULL)
                 printf("%s:%d:%s", fName, cnt, buf);
         }
-        else if (o == 2)
+        else if (o == 2)    //v 옵션
         {
             if (strstr(buf, search) == NULL)
                 printf("%s:%s", fName, buf);
         }
-        else if (o == 3)
+        else if (o == 3)    //i 옵션
         {
             if (strcasestr(buf, search) != NULL)
                 printf("%s:%s", fName, buf);
         }
-        else if (o == 4)
+        else if (o == 4)    //nv, vn 옵션
         {
             if (strstr(buf, search) == NULL)
                 printf("%s:%d:%s", fName, cnt, buf);
         }
-        else if (o == 5)
+        else if (o == 5)    // ni, in 옵션
         {
             if (strcasestr(buf, search) != NULL)
                 printf("%s:%d:%s", fName, cnt, buf);
         }
-        else if (o == 6)
+        else if (o == 6)    // vi, iv 옵션
         {
             if (strcasestr(buf, search) == NULL)
                 printf("%s:%s", fName, buf);
         }
-        else if (o == 7) {
+        else if (o == 7) {      // nvi, niv, vin, vni, ivn, inv 옵션
             if (strcasestr(buf, search) == NULL)
                 printf("%s:%d:%s", fName, cnt, buf);
         }
@@ -187,25 +181,25 @@ void* grep_thread(void* arg) {
 
     strncpy(tmp, cmd, MAX_DIR);
 
-    if (strstr(tmp, "/") == NULL) {
+    if (strstr(tmp, "/") == NULL) {     //현재 디렉토리 안에 있는 파일 또는 디렉토리일 경우
         tmpNode = IsExistDir(dirTree, cmd, 'd');
         tmpNode2 = IsExistDir(dirTree, cmd, 'f');
-        if (tmpNode == NULL && tmpNode2 == NULL) {
+        if (tmpNode == NULL && tmpNode2 == NULL) {      //파일 또는 디렉토리가 없을 경우
             printf("grep: '%s': No such file or directory.\n", cmd);
             return NULL;
         }
-        else if (tmpNode != NULL && tmpNode2 == NULL) {
+        else if (tmpNode != NULL && tmpNode2 == NULL) {     //디렉토리일 경우
             printf("grep: '%s': Is a directory\n", cmd);
             return NULL;
         }
-        else if (tmpNode2 != NULL && HasPermission(tmpNode2, 'r') != 0) {
+        else if (tmpNode2 != NULL && HasPermission(tmpNode2, 'r') != 0) {       //허가권한이 거부될 경우
             printf("grep: Can not open file '%s': Permission denied\n", tmpNode2->name);
             return NULL;
         }
         else
             grep_print(dirTree, con, cmd, option);
     }
-    else {
+    else {      //다른 디렉토리의 파일이나 디렉토리일 경우
         strncpy(tmp2, getDir(tmp), MAX_DIR);
         val = MovePath(dirTree, tmp2);
         if (val) {
@@ -219,17 +213,17 @@ void* grep_thread(void* arg) {
         }
         tmpNode = IsExistDir(dirTree, tmp3, 'd');
         tmpNode2 = IsExistDir(dirTree, tmp3, 'f');
-        if (tmpNode == NULL && tmpNode2 == NULL) {
+        if (tmpNode == NULL && tmpNode2 == NULL) {      //파일 또는 디렉토리가 존재하지 않을 경우
             printf("grep: '%s': No such file or directory.\n", tmp3);
             dirTree->current = currentNode;
             return NULL;
         }
-        else if (tmpNode != NULL && tmpNode2 == NULL) {
+        else if (tmpNode != NULL && tmpNode2 == NULL) {     //디렉토리일 경우
             printf("grep: '%s': Is a directory\n", tmp3);
             dirTree->current = currentNode;
             return NULL;
         }
-        else if (tmpNode2 != NULL && HasPermission(tmpNode2, 'r') != 0) {
+        else if (tmpNode2 != NULL && HasPermission(tmpNode2, 'r') != 0) {       //허가권한이 거부될 경우
             printf("grep: Can not open file '%s': Permission denied\n", tmpNode2->name);
             dirTree->current = currentNode;
             return NULL;
