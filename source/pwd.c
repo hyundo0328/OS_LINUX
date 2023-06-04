@@ -2,7 +2,9 @@
 
 int pwd(DirectoryTree* dirTree, Stack* dirStack, char* cmd)
 {
-    if(cmd[0] == '-'){
+    if (!cmd)
+        PrintPath(dirTree, dirStack);
+    else if(cmd[0] == '-'){
         if(strcmp(cmd, "--help") == 0){
             printf("pwd: pwd [-LP]\n");
             printf("  Print the name of the current working directory.\n\n");
@@ -20,7 +22,6 @@ int pwd(DirectoryTree* dirTree, Stack* dirStack, char* cmd)
         }
         return -1;
     }
-    PrintPath(dirTree, dirStack);
     return 0;
 }
 
