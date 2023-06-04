@@ -62,7 +62,7 @@ int ReadNode(DirectoryTree* dirTree, char* tmp)
     NewNode->type = str[0];
     str = strtok(NULL, " ");
     NewNode->mode = atoi(str);
-    Mode2Permission(NewNode);
+    Atoi_permission(NewNode);
     str = strtok(NULL, " ");
     NewNode->SIZE = atoi(str);
     str = strtok(NULL, " ");

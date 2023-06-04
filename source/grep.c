@@ -1,5 +1,5 @@
 #include "../include/main.h"
-
+int cmdcnt = 0;
 int grep(DirectoryTree* dirTree, char* cmd)
 {
     DirectoryNode* currentNode = NULL;
@@ -97,11 +97,13 @@ int grep(DirectoryTree* dirTree, char* cmd)
         threadTree[thread_cnt].content = con;
         threadTree[thread_cnt++].cmd = str;
         str = strtok(NULL, " ");
+        cmdcnt++;
     }
     for (int i = 0; i < thread_cnt; i++) {       //pthread생성 후 cat_thread로 처리, 마지막으로 join
         pthread_create(&threadArr[i], NULL, grep_thread, (void*)&threadTree[i]);
         pthread_join(threadArr[i], NULL);
     }
+    cmdcnt = 0;
     return 1;
 }
 
@@ -112,7 +114,6 @@ int grep_print(DirectoryTree* dirTree, char* search, char* fName, int o)
     int cnt = 1;
 
     fp = fopen(fName, "r");
-
     while (feof(fp) == 0) {
         fgets(buf, sizeof(buf), fp);
         if (feof(fp) != 0) {
@@ -121,41 +122,73 @@ int grep_print(DirectoryTree* dirTree, char* search, char* fName, int o)
         else if (o == 0)    //옵션 x
         {
             if (strstr(buf, search) != NULL)
-                printf("%s:%s", fName, buf);
+            {
+                if (cmdcnt > 1)
+                    printf("%s:", fName);
+                printf("%s", buf);
+            }
         }
         else if (o == 1)    //n 옵션
         {
             if (strstr(buf, search) != NULL)
-                printf("%s:%d:%s", fName, cnt, buf);
+            {
+                if (cmdcnt > 1)
+                    printf("%s:", fName);
+                printf("%d:%s", cnt, buf);
+            }
         }
         else if (o == 2)    //v 옵션
         {
             if (strstr(buf, search) == NULL)
-                printf("%s:%s", fName, buf);
+            {
+                if (cmdcnt > 1)
+                    printf("%s:", fName);
+                printf("%s", buf);
+            }
         }
         else if (o == 3)    //i 옵션
         {
             if (strcasestr(buf, search) != NULL)
-                printf("%s:%s", fName, buf);
+            {
+                if (cmdcnt > 1)
+                    printf("%s:", fName);
+                printf("%s", buf);
+            }
         }
         else if (o == 4)    //nv, vn 옵션
         {
             if (strstr(buf, search) == NULL)
-                printf("%s:%d:%s", fName, cnt, buf);
+            {
+                if (cmdcnt > 1)
+                    printf("%s:", fName);
+                printf("%d:%s", cnt, buf);
+            }
         }
         else if (o == 5)    // ni, in 옵션
         {
             if (strcasestr(buf, search) != NULL)
-                printf("%s:%d:%s", fName, cnt, buf);
+            {
+                if (cmdcnt > 1)
+                    printf("%s:", fName);
+                printf("%d:%s", cnt, buf);
+            }
         }
         else if (o == 6)    // vi, iv 옵션
         {
             if (strcasestr(buf, search) == NULL)
-                printf("%s:%s", fName, buf);
+            {
+                if (cmdcnt > 1)
+                    printf("%s:", fName);
+                printf("%s", buf);
+            }
         }
         else if (o == 7) {      // nvi, niv, vin, vni, ivn, inv 옵션
             if (strcasestr(buf, search) == NULL)
-                printf("%s:%d:%s", fName, cnt, buf);
+            {
+                if (cmdcnt > 1)
+                    printf("%s:", fName);
+                printf("%d:%s", cnt, buf);
+            }
         }
         cnt++;
     }

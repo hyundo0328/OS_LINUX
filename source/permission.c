@@ -68,7 +68,7 @@ int HasPermission(DirectoryNode* dirNode, char o)
     return -1;
 }
 
-int Atoi_Permission(DirectoryNode* dirNode)
+int Atoi_permission(DirectoryNode* dirNode)
 {
     char buf[4];
     int tmp;

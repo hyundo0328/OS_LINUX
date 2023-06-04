@@ -114,11 +114,12 @@ int PrintPath(DirectoryTree* dirTree, Stack* dirStack);
 
 //ls.c
 int ls(DirectoryTree* dirTree, char* cmd);
-int ListDir(DirectoryTree* dirTree, int a, int l);
+int ListDir(DirectoryTree* dirTree, int option);
+void* ls_thread(void *arg);
 
 //cat.c
 int cat(DirectoryTree* dirTree, char* cmd);
-int Concatenate(DirectoryTree* dirTree, char* fName, int o);
+int cat_print(DirectoryTree* dirTree, char* fName, int o);
 void *cat_thread(void *arg);
 
 //chmod.c

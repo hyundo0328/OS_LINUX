@@ -3,21 +3,15 @@
 int mkdir(DirectoryTree* dirTree, char* cmd)
 {
     DirectoryNode* tmpNode = NULL;
+    pthread_t threadArr[MAX_THREAD];
+    ThreadTree threadTree[MAX_THREAD];
     char* str;
     char tmp[MAX_DIR];
     char tmp2[MAX_DIR];
     char tmp3[MAX_DIR];
+    int thread_cnt = 0;
     int val, option = 0;
     int tmpMode;
-    if(cmd == NULL){ // 아무 method를 입력하지 않았을 때
-        printf("mkdir: missing operand\n");
-        printf("Try 'mkdir --help' for more information.\n");
-        return -1;
-    }
-    
-    int thread_cnt = 0;
-    pthread_t threadArr[MAX_THREAD];
-    ThreadTree threadTree[MAX_THREAD];
     tmpNode = dirTree->current;
     if(cmd[0] == '-'){ //옵션 있을 경우
         if(strcmp(cmd, "-p") == 0){

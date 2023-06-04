@@ -78,7 +78,7 @@ int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)     //권한 바
             return -1;
         }
         tmpNode->mode = mode;
-        Atoi_Permission(tmpNode);
+        Atoi_permission(tmpNode);
     }
     else if(tmpNode2 != NULL){
         if(HasPermission(tmpNode2, 'w') != 0){      //허가권한이 거부되었을 때

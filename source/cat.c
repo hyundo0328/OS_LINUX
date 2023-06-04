@@ -46,7 +46,7 @@ int cat(DirectoryTree* dirTree, char* cmd)
                 return -1;
             }
             else
-                Concatenate(dirTree, str, 0);
+                cat_print(dirTree, str, 0);
         }
         else{       //그 외에 다른 디렉토리에서 파일을 불러올 경우
             if (strcmp(str, "/") == 0)
@@ -77,7 +77,7 @@ int cat(DirectoryTree* dirTree, char* cmd)
                 return -1;
             }
             else
-                Concatenate(dirTree, tmp3, 0);
+                cat_print(dirTree, tmp3, 0);
             dirTree->current = currentNode;
         }
         return 0;
@@ -85,23 +85,16 @@ int cat(DirectoryTree* dirTree, char* cmd)
     else if(cmd[0] == '-'){     //옵션이 있을 때
         if(strcmp(cmd, "-n")== 0){      //n 옵션일 때
             str = strtok(NULL, " ");
-            if (str == NULL) {
-                char buf[MAX_BUFFER];
-                char *buf2 = (char*)malloc(MAX_BUFFER);
-                int num = 1;
-                while(fgets(buf, sizeof(buf), stdin)){
-                    buf2 = strcpy(buf2, buf);
-                    printf("     %d\t%s", num, buf2);
-                    num++;
-                }
-                rewind(stdin);
+            if (str == NULL){
+                printf("cat: missing operand\n");
+                printf("Try 'cat --help' for more information.\n");
                 return -1;
             }
             option = 2;
         }
         else if(strcmp(cmd, "--help") == 0){    //--help 입력시
             printf("Usage: cat [OPTION]... [FILE]...\n");
-            printf("Concatenate FILE(s) to standard output.\n\n");
+            printf("cat_print FILE(s) to standard output.\n\n");
   
             printf("With no FILE, or when FILS is -, read standard input.\n\n");
     
@@ -127,7 +120,7 @@ int cat(DirectoryTree* dirTree, char* cmd)
     }
     else{   //옵션이 없이 사용했을 때
         if(strcmp(cmd, "/etc/passwd") == 0){
-            Concatenate(dirTree, cmd, 3);
+            cat_print(dirTree, cmd, 3);
             return 0;
         }
         str = strtok(NULL, " ");
@@ -182,7 +175,7 @@ void *cat_thread(void *arg) {   //파일마다 스레드로 실행되는 함수
             printf("cat: Can not open file '%s': Permission denied\n", tmpNode2->name);
             return NULL;
         } else 
-            Concatenate(dirTree, cmd, option);
+            cat_print(dirTree, cmd, option);
     }
     else {      //그 외에 다른 디렉토리 안에 있는 파일 불러올 경우
         strncpy(tmp2, getDir(tmp), MAX_DIR);
@@ -219,13 +212,13 @@ void *cat_thread(void *arg) {   //파일마다 스레드로 실행되는 함수
             return NULL;
         } 
         else 
-            Concatenate(dirTree, tmp3, option);
+            cat_print(dirTree, tmp3, option);
         dirTree->current = currentNode;
     }
     pthread_exit(NULL);     //스레드 실행 끝
 }
 //cat
-int Concatenate(DirectoryTree* dirTree, char* fName, int o)     //cat명령어 수행을 본격적으로 해주는 함수
+int cat_print(DirectoryTree* dirTree, char* fName, int o)     //cat명령어 수행을 본격적으로 해주는 함수
 {
     UserNode* tmpUser = NULL;
     DirectoryNode* tmpNode = NULL;
