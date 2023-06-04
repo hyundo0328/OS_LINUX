@@ -78,7 +78,7 @@ int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)     //권한 바
             return -1;
         }
         tmpNode->mode = mode;
-        Mode2Permission(tmpNode);
+        Atoi_Permission(tmpNode);
     }
     else if(tmpNode2 != NULL){
         if(HasPermission(tmpNode2, 'w') != 0){      //허가권한이 거부되었을 때
@@ -86,7 +86,7 @@ int ChangeMode(DirectoryTree* dirTree, int mode, char* dirName)     //권한 바
             return -1;
         }
         tmpNode2->mode = mode;
-        Mode2Permission(tmpNode2);
+        Atoi_permission(tmpNode2);
     }
     else if ((tmpNode == NULL) && (tmpNode2 == NULL)){      //파일 또는 디렉토리가 없을 때
         printf("chmod: cannot access '%s': No such file or directory\n", dirName);

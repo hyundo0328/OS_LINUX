@@ -16,7 +16,7 @@ int mkdir(DirectoryTree* dirTree, char* cmd)
     }
     
     int thread_cnt = 0;
-    pthread_t threadPool[MAX_THREAD];
+    pthread_t threadArr[MAX_THREAD];
     ThreadTree threadTree[MAX_THREAD];
     tmpNode = dirTree->current;
     if(cmd[0] == '-'){ //옵션 있을 경우
@@ -63,8 +63,8 @@ int mkdir(DirectoryTree* dirTree, char* cmd)
         str = strtok(NULL, " ");
     }
     for (int i = 0; i < thread_cnt; i++) {
-        pthread_create(&threadPool[i], NULL, mkdir_thread, (void *)&threadTree[i]);
-        pthread_join(threadPool[i], NULL);
+        pthread_create(&threadArr[i], NULL, mkdir_thread, (void *)&threadTree[i]);
+        pthread_join(threadArr[i], NULL);
     }
     return 0;
 }
@@ -112,7 +112,7 @@ int MakeDir(DirectoryTree* dirTree, char* dirName, char type)
         NewNode->mode = 644;
         NewNode->SIZE = 0;
     }
-    Mode2Permission(NewNode);
+    Atoi_permission(NewNode);
     NewNode->UID = usrList->current->UID;
     NewNode->GID = usrList->current->GID;
     NewNode->month = today->tm_mon + 1;

@@ -185,17 +185,9 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
         return;
     }
     str = strtok(cmd, " ");
-
-    if(strcasecmp(str, "mkdir") == 0){
+    if(strcasecmp(str, "cat") == 0){
         str = strtok(NULL, " ");
-        val = mkdir(dirTree, str);
-        if(val == 0){
-            SaveDir(dirTree, dStack);
-        }
-    }
-    else if(strcasecmp(str, "rm") == 0){
-        str = strtok(NULL, " ");
-        val = rm(dirTree, str);
+        val = cat(dirTree, str);
         if(val == 0){
             SaveDir(dirTree, dStack);
         }
@@ -203,21 +195,6 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
     else if(strcasecmp(str, "cd") == 0){
         str = strtok(NULL, " ");
         cd(dirTree, str);
-    }
-    else if(strcasecmp(str, "ls") == 0){
-        str = strtok(NULL, " ");
-        ls(dirTree, str);
-    }
-    else if(strcasecmp(str, "cat") == 0){
-        str = strtok(NULL, " ");
-        val = cat(dirTree, str);
-        if(val == 0){
-            SaveDir(dirTree, dStack);
-        }
-    }
-    else if(strcasecmp(str, "grep") == 0){
-        str = strtok(NULL, " ");
-        grep(dirTree, str);
     }
     else if(strcasecmp(str, "chmod") == 0){
         str = strtok(NULL, " ");
@@ -233,16 +210,38 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcasecmp(str, "pwd") == 0){
-        str = strtok(NULL, " ");
-        pwd(dirTree, dStack, str);
-    }
     else if(strcasecmp(str, "find") == 0){
         str = strtok(NULL, " ");
         find(dirTree, str);
     }
+    else if(strcasecmp(str, "grep") == 0){
+        str = strtok(NULL, " ");
+        grep(dirTree, str);
+    }
+    else if(strcasecmp(str, "ls") == 0){
+        str = strtok(NULL, " ");
+        ls(dirTree, str);
+    }
+    else if(strcasecmp(str, "mkdir") == 0){
+        str = strtok(NULL, " ");
+        val = mkdir(dirTree, str);
+        if(val == 0){
+            SaveDir(dirTree, dStack);
+        }
+    }
+    else if(strcasecmp(str, "pwd") == 0){
+        str = strtok(NULL, " ");
+        pwd(dirTree, dStack, str);
+    }
+    else if(strcasecmp(str, "rm") == 0){
+        str = strtok(NULL, " ");
+        val = rm(dirTree, str);
+        if(val == 0){
+            SaveDir(dirTree, dStack);
+        }
+    }
     else if(strcasecmp(cmd, "exit") == 0){
-            printf("logout\n");
+            printf("Logout\n");
             exit(0);
     }
     else{

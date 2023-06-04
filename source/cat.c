@@ -5,7 +5,7 @@ int cat(DirectoryTree* dirTree, char* cmd)
     DirectoryNode* currentNode = NULL;
     DirectoryNode* tmpNode = NULL;
     DirectoryNode* tmpNode2 = NULL;
-    pthread_t threadPool[MAX_THREAD];
+    pthread_t threadArr[MAX_THREAD];
     ThreadTree threadTree[MAX_THREAD];
 
     int thread_cnt = 0;
@@ -142,8 +142,8 @@ int cat(DirectoryTree* dirTree, char* cmd)
         str = strtok(NULL, " ");
     }
     for (int i = 0; i < thread_cnt; i++) {      //pthread생성 후 cat_thread로 처리, 마지막으로 join
-        pthread_create(&threadPool[i], NULL, cat_thread, (void*)&threadTree[i]);
-        pthread_join(threadPool[i], NULL);
+        pthread_create(&threadArr[i], NULL, cat_thread, (void*)&threadTree[i]);
+        pthread_join(threadArr[i], NULL);
     }
     return 1;
 }

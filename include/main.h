@@ -155,7 +155,7 @@ void PrintHead(DirectoryTree* dirTree, Stack* dirStack);
 
 //permission.c
 int HasPermission(DirectoryNode* dirNode, char o);
-int Mode2Permission(DirectoryNode* dirNode);
+int Atoi_permission(DirectoryNode* dirNode);
 void PrintPermission(DirectoryNode* dirNode);
 
 //directory.c

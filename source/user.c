@@ -3,27 +3,27 @@
 UserList* InitializeUser()
 {
     UserList* returnList = (UserList*)malloc(sizeof(UserList));
-    UserNode* NewNode = (UserNode*)malloc(sizeof(UserNode));
+    UserNode* tmpNode = (UserNode*)malloc(sizeof(UserNode));
 
     time(&ltime);
     today = localtime(&ltime);
 
-    strncpy(NewNode->name, "root", MAX_NAME);
-    strncpy(NewNode->dir, "/", MAX_NAME);
-    NewNode->UID = 0;
-    NewNode->GID = 0;
-    NewNode->year = today->tm_year+1900;
-    NewNode->month = today->tm_mon+1;
-    NewNode->wday = today->tm_wday;
-    NewNode->day = today->tm_mday;
-    NewNode->hour = today->tm_hour;
-    NewNode->minute = today->tm_min;
-    NewNode->sec = today->tm_sec;
-    NewNode->LinkNode = NULL;
+    strncpy(tmpNode->name, "root", MAX_NAME);
+    strncpy(tmpNode->dir, "/", MAX_NAME);
+    tmpNode->UID = 0;
+    tmpNode->GID = 0;
+    tmpNode->year = today->tm_year+1900;
+    tmpNode->month = today->tm_mon+1;
+    tmpNode->wday = today->tm_wday;
+    tmpNode->day = today->tm_mday;
+    tmpNode->hour = today->tm_hour;
+    tmpNode->minute = today->tm_min;
+    tmpNode->sec = today->tm_sec;
+    tmpNode->LinkNode = NULL;
 
-    returnList->head = NewNode;
-    returnList->tail = NewNode;
-    returnList->current = NewNode;
+    returnList->head = tmpNode;
+    returnList->tail = tmpNode;
+    returnList->current = tmpNode;
     returnList->topUID = 0;
     returnList->topGID = 0;
 
@@ -62,42 +62,42 @@ void SaveUserList(UserList* userList)
 
 int ReadUser(UserList* userList, char* tmp)
 {
-    UserNode* NewNode = (UserNode*)malloc(sizeof(UserNode));
+    UserNode* tmpNode = (UserNode*)malloc(sizeof(UserNode));
     char* str;
 
-    NewNode->LinkNode = NULL;
+    tmpNode->LinkNode = NULL;
 
     str = strtok(tmp, " ");
-    strncpy(NewNode->name, str, MAX_NAME);
+    strncpy(tmpNode->name, str, MAX_NAME);
     str = strtok(NULL, " ");
-    NewNode->UID = atoi(str);
+    tmpNode->UID = atoi(str);
     str = strtok(NULL, " ");
-    NewNode->GID = atoi(str);
+    tmpNode->GID = atoi(str);
     str = strtok(NULL, " ");
-    NewNode->year = atoi(str);
+    tmpNode->year = atoi(str);
     str = strtok(NULL, " ");
-    NewNode->month = atoi(str);
+    tmpNode->month = atoi(str);
     str = strtok(NULL, " ");
-    NewNode->wday = atoi(str);
+    tmpNode->wday = atoi(str);
     str = strtok(NULL, " ");
-    NewNode->day = atoi(str);
+    tmpNode->day = atoi(str);
     str = strtok(NULL, " ");
-    NewNode->hour = atoi(str);
+    tmpNode->hour = atoi(str);
     str = strtok(NULL, " ");
-    NewNode->minute = atoi(str);
+    tmpNode->minute = atoi(str);
     str = strtok(NULL, " ");
-    NewNode->sec = atoi(str);
+    tmpNode->sec = atoi(str);
     str = strtok(NULL, " ");
     str[strlen(str)-1] = '\0';
-    strncpy(NewNode->dir, str, MAX_DIR);
+    strncpy(tmpNode->dir, str, MAX_DIR);
 
-    if(strcasecmp(NewNode->name, "root") == 0){
-        userList->head = NewNode;
-        userList->tail = NewNode;
+    if(strcasecmp(tmpNode->name, "root") == 0){
+        userList->head = tmpNode;
+        userList->tail = tmpNode;
     }
     else{
-        userList->tail->LinkNode = NewNode;
-        userList->tail = NewNode;
+        userList->tail->LinkNode = tmpNode;
+        userList->tail = tmpNode;
     }
     return 0;
 }
@@ -163,16 +163,16 @@ char* GetGID(DirectoryNode* dirNode)
 
 void Login(UserList* userList, DirectoryTree* dirTree)
 {
-    UserNode* tmpUser = NULL;
+    UserNode* tmpNode = NULL;
     char userName[MAX_NAME];
     char tmp[MAX_DIR];
 
-    tmpUser= userList->head;
+    tmpNode= userList->head;
 
     printf("Users: ");
-    while(tmpUser != NULL){
-        printf("%s ", tmpUser->name);
-        tmpUser = tmpUser->LinkNode;
+    while(tmpNode != NULL){
+        printf("%s ", tmpNode->name);
+        tmpNode = tmpNode->LinkNode;
     }
     printf("\n");
 
@@ -183,9 +183,9 @@ void Login(UserList* userList, DirectoryTree* dirTree)
         if(strcmp(userName, "exit") == 0){
             exit(0);
         }
-        tmpUser = IsExistUser(userList, userName);
-        if(tmpUser != NULL){
-            userList->current = tmpUser;
+        tmpNode = IsExistUser(userList, userName);
+        if(tmpNode != NULL){
+            userList->current = tmpNode;
             break;
         }
         printf("'%s' User does not exists\n", userName);

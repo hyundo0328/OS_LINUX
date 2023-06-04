@@ -180,7 +180,8 @@ int ListDir(DirectoryTree* dirTree, int a, int l)
             printf("   ");
             printf("%-5s%-5s", GetUID(dirTree->current), GetGID(dirTree->current));
             printf("%5d ", dirTree->current->SIZE);
-            printf("%d월 %2d %02d:%02d ", dirTree->current->month, dirTree->current->day, dirTree->current->hour, dirTree->current->minute);
+            GetMonth(dirTree->current->month);
+            printf(" %2d %02d:%02d ", dirTree->current->day, dirTree->current->hour, dirTree->current->minute);
             BOLD; BLUE;
             printf(".\n");
             DEFAULT;
@@ -207,7 +208,8 @@ int ListDir(DirectoryTree* dirTree, int a, int l)
                 printf("   ");
                 printf("%-5s%-5s", GetUID(dirTree->current->Parent), GetGID(dirTree->current->Parent));
                 printf("%5d ", dirTree->current->SIZE);
-                printf("%d월 %2d %02d:%02d ", dirTree->current->Parent->month, dirTree->current->Parent->day, dirTree->current->Parent->hour, dirTree->current->Parent->minute);
+                GetMonth(dirTree->current->Parent->month);
+                printf(" %2d %02d:%02d ", dirTree->current->Parent->day, dirTree->current->Parent->hour, dirTree->current->Parent->minute);
                 BOLD; BLUE;
                 printf("..\n");
                 DEFAULT;
@@ -250,7 +252,8 @@ int ListDir(DirectoryTree* dirTree, int a, int l)
             printf("   ");
             printf("%-9s%-9s", GetUID(tmpNode), GetGID(tmpNode));
             printf("%5d ", tmpNode->SIZE);
-            printf("%d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->minute);
+            GetMonth(tmpNode->month);
+            printf(" %2d %02d:%02d ", tmpNode->day, tmpNode->hour, tmpNode->minute);
 
             if (tmpNode->type == 'd') {
                 BOLD; BLUE;
