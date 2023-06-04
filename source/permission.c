@@ -81,12 +81,10 @@ int Mode2Permission(DirectoryNode* dirNode)
 
     for(int i=0;i<3;i++){
         tmp = buf[i] - '0';
-        j = 2;
-
-        while(tmp != 0){
-        dirNode->permission[3*i+j] = tmp%2;
-        tmp/=2;
-        j--;
+        for (int j = 2 ; j >= 0 ; j--)
+        {
+            dirNode->permission[3*i+j] = tmp%2;
+            tmp /= 2;
         }
     }
 

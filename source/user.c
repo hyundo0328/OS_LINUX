@@ -5,7 +5,6 @@ UserList* InitializeUser()
     UserList* returnList = (UserList*)malloc(sizeof(UserList));
     UserNode* NewNode = (UserNode*)malloc(sizeof(UserNode));
 
-    //get time
     time(&ltime);
     today = localtime(&ltime);
 

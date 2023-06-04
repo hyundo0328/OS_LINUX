@@ -248,7 +248,7 @@ int ListDir(DirectoryTree* dirTree, int a, int l)
             PrintPermission(tmpNode);
             printf("%3d", cnt);
             printf("   ");
-            printf("%-5s%-5s", GetUID(tmpNode), GetGID(tmpNode));
+            printf("%-9s%-9s", GetUID(tmpNode), GetGID(tmpNode));
             printf("%5d ", tmpNode->SIZE);
             printf("%d월 %2d %02d:%02d ", tmpNode->month, tmpNode->day, tmpNode->hour, tmpNode->minute);
 

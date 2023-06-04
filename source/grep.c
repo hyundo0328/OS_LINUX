@@ -72,6 +72,10 @@ int grep(DirectoryTree* dirTree, char* cmd)
             return -1;
         }
         str = strtok(NULL, " ");
+        if (str == NULL) {      //옵션 뒤에 찾을 내용이 없을 경우
+            printf("Try 'grep --help' for more information.\n");
+            return -1;
+        }
         strncpy(con, str, MAX_BUFFER);
         str = strtok(NULL, " ");
         if (str == NULL) {      //옵션 뒤에 명령할 파일이 없을 경우
