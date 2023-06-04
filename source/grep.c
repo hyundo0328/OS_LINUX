@@ -107,13 +107,8 @@ int grep(DirectoryTree* dirTree, char* cmd)
 
 int grep_print(DirectoryTree* dirTree, char* search, char* fName, int o)
 {
-    UserNode* tmpUser = NULL;
-    DirectoryNode* tmpNode = NULL;
     FILE* fp;
     char buf[MAX_BUFFER];
-    char tmpName[MAX_NAME];
-    char* str;
-    int tmpSIZE = 0;
     int cnt = 1;
 
     fp = fopen(fName, "r");
