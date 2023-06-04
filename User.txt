@@ -1,4 +1,6 @@
-root 0 0 2023 5 1 29 18 41 35 /
-minwoo 1000 1000 2023 5 1 29 17 57 14 /Users/minwoo
-hyundo 1001 1001 2023 5 1 29 17 45 10 /Users/hyundo
+root 0 0 2023 6 0 4 17 45 54 /
+minwoo 1000 1000 2023 6 0 4 19 44 59 /Users/minwoo
+hyundo 1001 1001 2023 6 6 3 18 0 55 /Users/hyundo
 junho 1002 1002 2023 5 1 29 17 44 46 /Users/junho
+jimin 1003 1003 2023 6 0 4 19 44 41 /Users/jimin
+igeon 1004 1004 2023 5 1 29 17 44 46 /Users/igeon
