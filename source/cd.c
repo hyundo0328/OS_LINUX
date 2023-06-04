@@ -3,7 +3,6 @@
 int cd(DirectoryTree* dirTree, char* cmd)
 {
     DirectoryNode* tmpNode = NULL;
-    char* str = NULL;
     char tmp[MAX_DIR];
     int val;
 
