@@ -167,10 +167,11 @@ void *rm_thread(void *arg) {
                 printf("rm: cannot remove '%s': No such file or directory.\n", tmp);
                 return NULL;
             }
-            if (tmpNode == NULL) {
-                printf("rm: cannot remove '%s': No such file or directory.\n", cmd);
+            else if (tmpNode2 != NULL) {
+                printf("rm: cannot remove '%s': Is a directory.\n", cmd);
                 return NULL;
-            } else {
+            } 
+            else {
                 if (HasPermission(dirTree->current, 'w') != 0 || HasPermission(tmpNode, 'w') != 0) {
                     printf("rm: cannot remove '%s': Permission denied.\n", cmd);
                     return NULL;
@@ -180,27 +181,27 @@ void *rm_thread(void *arg) {
         } else {
             strncpy(tmp2, getDir(tmp), MAX_DIR);
             int val = MovePath(dirTree, tmp2);
-            if (val != 0) {
+            if (val) {
                 printf("rm: cannot remove '%s': No such file or directory.\n", tmp2);
                 return NULL;
             }
-            char *str = strtok(tmp, "/");
+            char *str = strtok(cmd, "/");
             while (str != NULL) {
                 strncpy(tmp3, str, MAX_NAME);
                 str = strtok(NULL, "/");
             }
             tmpNode = IsExistDir(dirTree, tmp3, 'f');
             tmpNode2 = IsExistDir(dirTree, tmp3, 'd');
-            if (tmpNode2 != NULL) {
+            if (tmpNode == NULL && tmpNode2 == NULL) {
+                printf("rm: cannot remove '%s': No such file or directory.\n", tmp3);
+                return NULL;
+            }
+            else if (tmpNode2 != NULL) {
                 printf("rm: cannot remove '%s': Is a directory.\n", tmp3);
                 dirTree->current = currentNode;
                 return NULL;
             }
-            if (tmpNode != NULL) {
-                printf("rm: cannot remove '%s' No such file or directory.\n", tmp3);
-                dirTree->current = currentNode;
-                return NULL;
-            } else {
+            else {
                 if (HasPermission(dirTree->current, 'w') != 0 || HasPermission(tmpNode, 'w') != 0) {
                     printf("rm: cannot remove '%s': Permission denied.\n", tmp3);
                     dirTree->current = currentNode;
@@ -211,12 +212,14 @@ void *rm_thread(void *arg) {
             dirTree->current = currentNode;
         }
     } else if (option == 1) {
-        if (!strstr(tmp, "/")) {
-            tmpNode = IsExistDir(dirTree, tmp, 'd');
+        if (strstr(tmp, "/") == NULL) {
+            tmpNode = IsExistDir(dirTree, tmp, 'f');
+            tmpNode = IsExistDir(dirTree, tmp, 'd') == NULL ? tmpNode : IsExistDir(dirTree, tmp, 'd');
             if (tmpNode == NULL) {
                 printf("rm: cannot remove '%s': No such file or directory.\n", tmp);
                 return NULL;
-            } else {
+            } 
+            else {
                 if (HasPermission(dirTree->current, 'w') != 0 || HasPermission(tmpNode, 'w') != 0) {
                     printf("rm: cannot remove '%s': Permission denied.", tmp);
                     return NULL;
@@ -226,18 +229,18 @@ void *rm_thread(void *arg) {
         } else {
             strncpy(tmp2, getDir(tmp), MAX_DIR);
             int val = MovePath(dirTree, tmp2);
-            if (val != 0) {
+            if (val) {
                 printf("rm: cannot remove '%s': No such file or directory.\n", tmp2);
                 return NULL;
             }
-            char *str = strtok(tmp, "/");
+            char *str = strtok(cmd, "/");
             while (str != NULL) {
                 strncpy(tmp3, str, MAX_NAME);
                 str = strtok(NULL, "/");
             }
             tmpNode = IsExistDir(dirTree, tmp3, 'f');
             tmpNode = IsExistDir(dirTree, tmp3, 'd') == NULL ? tmpNode : IsExistDir(dirTree, tmp3, 'd');
-            if (tmpNode != NULL) {
+            if (tmpNode == NULL) {
                 printf("rm: cannot remove '%s': No such file or directory.\n", tmp3);
                 dirTree->current = currentNode;
                 return NULL;
@@ -254,7 +257,7 @@ void *rm_thread(void *arg) {
     } else if (option == 2) {
         if (strstr(tmp, "/") == NULL) {
             tmpNode = IsExistDir(dirTree, tmp, 'f');
-            if (!tmpNode)
+            if (tmpNode == NULL)
                 return NULL;
             else {
                 if (HasPermission(dirTree->current, 'w') != 0 || HasPermission(tmpNode, 'w') != 0) 
@@ -266,7 +269,7 @@ void *rm_thread(void *arg) {
             int val = MovePath(dirTree, tmp2);
             if (val != 0)
                 return NULL;
-            char *str = strtok(tmp, "/");
+            char *str = strtok(cmd, "/");
             while (str != NULL) {
                 strncpy(tmp3, str, MAX_NAME);
                 str = strtok(NULL, "/");
@@ -300,7 +303,7 @@ void *rm_thread(void *arg) {
             int val = MovePath(dirTree, tmp2);
             if (val != 0)
                 return NULL;
-            char *str = strtok(tmp, "/");
+            char *str = strtok(cmd, "/");
             while (str != NULL) {
                 strncpy(tmp3, str, MAX_NAME);
                 str = strtok(NULL, "/");
