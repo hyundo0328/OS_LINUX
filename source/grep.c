@@ -1,5 +1,5 @@
 #include "../include/main.h"
-int cmdcnt = 0;
+int grep_cnt = 0;
 int grep(DirectoryTree* dirTree, char* cmd)
 {
     DirectoryNode* currentNode = NULL;
@@ -9,12 +9,12 @@ int grep(DirectoryTree* dirTree, char* cmd)
     ThreadTree threadTree[MAX_THREAD];
 
     int thread_cnt = 0;
-    char* str;
+    char* command;
     char con[MAX_BUFFER];
     char tmp[MAX_DIR];
     char tmp2[MAX_DIR];
     char tmp3[MAX_DIR];
-    int val, option = 0;
+    int option = 0;
 
     if (cmd == NULL) {      //grep 뒤에 아무것도 안적었을 경우
         printf("Usage: grep [OPTION]... PATTERNS [FILE]\n");
@@ -66,131 +66,130 @@ int grep(DirectoryTree* dirTree, char* cmd)
             return -1;
         }
         else {      //나머지 옵션들 에러처리
-            printf("grep: inrecognized option '%s'\n", cmd);
             printf("Usage: grep [OPTION]... PATTERNS [FILE]\n");
             printf("Try 'grep --help' for more information.\n");
             return -1;
         }
-        str = strtok(NULL, " ");
-        if (str == NULL) {      //옵션 뒤에 찾을 내용이 없을 경우
+        command = strtok(NULL, " ");
+        if (command == NULL) {      //옵션 뒤에 찾을 내용이 없을 경우
             printf("Try 'grep --help' for more information.\n");
             return -1;
         }
-        strncpy(con, str, MAX_BUFFER);
-        str = strtok(NULL, " ");
-        if (str == NULL) {      //옵션 뒤에 명령할 파일이 없을 경우
+        strncpy(con, command, MAX_BUFFER);
+        command = strtok(NULL, " ");
+        if (command == NULL) {      //옵션 뒤에 명령할 파일이 없을 경우
             printf("Try 'grep --help' for more information.\n");
             return -1;
         }
     }
     else {      //옵션이 없을 경우
         strncpy(con, cmd, MAX_BUFFER);
-        str = strtok(NULL, " ");
-        if (str == NULL) {      //명령할 파일이 입력되지 않을 경우
+        command = strtok(NULL, " ");
+        if (command == NULL) {      //명령할 파일이 입력되지 않을 경우
             printf("Try 'grep --help' for more information.\n");
             return -1;
         }
     }
-    while (str != NULL) {       //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
+    while (command != NULL) {       //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
         threadTree[thread_cnt].threadTree = dirTree;
         threadTree[thread_cnt].option = option;
         threadTree[thread_cnt].content = con;
-        threadTree[thread_cnt++].cmd = str;
-        str = strtok(NULL, " ");
-        cmdcnt++;
+        threadTree[thread_cnt++].cmd = command;
+        command = strtok(NULL, " ");
+        grep_cnt++;
     }
     for (int i = 0; i < thread_cnt; i++) {       //pthread생성 후 cat_thread로 처리, 마지막으로 join
         pthread_create(&threadArr[i], NULL, grep_thread, (void*)&threadTree[i]);
         pthread_join(threadArr[i], NULL);
     }
-    cmdcnt = 0;
+    grep_cnt = 0;
     return 1;
 }
 
-int grep_print(DirectoryTree* dirTree, char* search, char* fName, int o)
+int grep_print(DirectoryTree* dirTree, char* search, char* fName, int option)
 {
     FILE* fp;
-    char buf[MAX_BUFFER];
-    int cnt = 1;
+    char buffer[MAX_BUFFER];
+    int count = 1;
 
     fp = fopen(fName, "r");
     while (feof(fp) == 0) {
-        fgets(buf, sizeof(buf), fp);
+        fgets(buffer, sizeof(buffer), fp);
         if (feof(fp) != 0) {
             break;
         }   //옵션에 따라 프린트
-        else if (o == 0)    //옵션 x
+        else if (option == 0)    //옵션 x
         {
-            if (strstr(buf, search) != NULL)
+            if (strstr(buffer, search) != NULL)
             {
-                if (cmdcnt > 1)
+                if (grep_cnt > 1)
                     printf("%s:", fName);
-                printf("%s", buf);
+                printf("%s", buffer);
             }
         }
-        else if (o == 1)    //n 옵션
+        else if (option == 1)    //n 옵션
         {
-            if (strstr(buf, search) != NULL)
+            if (strstr(buffer, search) != NULL)
             {
-                if (cmdcnt > 1)
+                if (grep_cnt > 1)
                     printf("%s:", fName);
-                printf("%d:%s", cnt, buf);
+                printf("%d:%s", count, buffer);
             }
         }
-        else if (o == 2)    //v 옵션
+        else if (option == 2)    //v 옵션
         {
-            if (strstr(buf, search) == NULL)
+            if (strstr(buffer, search) == NULL)
             {
-                if (cmdcnt > 1)
+                if (grep_cnt > 1)
                     printf("%s:", fName);
-                printf("%s", buf);
+                printf("%s", buffer);
             }
         }
-        else if (o == 3)    //i 옵션
+        else if (option == 3)    //i 옵션
         {
-            if (strcasestr(buf, search) != NULL)
+            if (strcasestr(buffer, search) != NULL)
             {
-                if (cmdcnt > 1)
+                if (grep_cnt > 1)
                     printf("%s:", fName);
-                printf("%s", buf);
+                printf("%s", buffer);
             }
         }
-        else if (o == 4)    //nv, vn 옵션
+        else if (option == 4)    //nv, vn 옵션
         {
-            if (strstr(buf, search) == NULL)
+            if (strstr(buffer, search) == NULL)
             {
-                if (cmdcnt > 1)
+                if (grep_cnt > 1)
                     printf("%s:", fName);
-                printf("%d:%s", cnt, buf);
+                printf("%d:%s", count, buffer);
             }
         }
-        else if (o == 5)    // ni, in 옵션
+        else if (option == 5)    // ni, in 옵션
         {
-            if (strcasestr(buf, search) != NULL)
+            if (strcasestr(buffer, search) != NULL)
             {
-                if (cmdcnt > 1)
+                if (grep_cnt > 1)
                     printf("%s:", fName);
-                printf("%d:%s", cnt, buf);
+                printf("%d:%s", count, buffer);
             }
         }
-        else if (o == 6)    // vi, iv 옵션
+        else if (option == 6)    // vi, iv 옵션
         {
-            if (strcasestr(buf, search) == NULL)
+            if (strcasestr(buffer, search) == NULL)
             {
-                if (cmdcnt > 1)
+                if (grep_cnt > 1)
                     printf("%s:", fName);
-                printf("%s", buf);
+                printf("%s", buffer);
             }
         }
-        else if (o == 7) {      // nvi, niv, vin, vni, ivn, inv 옵션
-            if (strcasestr(buf, search) == NULL)
+        else if (option == 7) {      // nvi, niv, vin, vni, ivn, inv 옵션
+            if (strcasestr(buffer, search) == NULL)
             {
-                if (cmdcnt > 1)
+                if (grep_cnt > 1)
                     printf("%s:", fName);
-                printf("%d:%s", cnt, buf);
+                printf("%d:%s", count, buffer);
             }
         }
-        cnt++;
+        count++;
     }
     fclose(fp);
     return 0;
@@ -207,9 +206,9 @@ void* grep_thread(void* arg) {
     char tmp[MAX_DIR];
     char tmp2[MAX_DIR];
     char tmp3[MAX_DIR];
-    char* str;
+    char* command;
     int option = threadTree->option;
-    int val;
+    int check_exist;
 
     strncpy(tmp, cmd, MAX_DIR);
 
@@ -233,15 +232,15 @@ void* grep_thread(void* arg) {
     }
     else {      //다른 디렉토리의 파일이나 디렉토리일 경우
         strncpy(tmp2, getDir(tmp), MAX_DIR);
-        val = MovePath(dirTree, tmp2);
-        if (val) {
+        check_exist = MovePath(dirTree, tmp2);
+        if (check_exist) {
             printf("grep: '%s': No such file or directory.\n", tmp2);
             return NULL;
         }
-        str = strtok(cmd, "/");
-        while (str != NULL) {
-            strncpy(tmp3, str, MAX_NAME);
-            str = strtok(NULL, "/");
+        command = strtok(cmd, "/");
+        while (command != NULL) {
+            strncpy(tmp3, command, MAX_NAME);
+            command = strtok(NULL, "/");
         }
         tmpNode = IsExistDir(dirTree, tmp3, 'd');
         tmpNode2 = IsExistDir(dirTree, tmp3, 'f');

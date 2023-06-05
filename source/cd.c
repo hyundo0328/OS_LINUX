@@ -4,7 +4,7 @@ int cd(DirectoryTree* dirTree, char* cmd)
 {
     DirectoryNode* tmpNode = NULL;
     char tmp[MAX_DIR];
-    int val;
+    int check_exist;
 
     if(cmd == NULL){    //자신의 홈디렉토리로 이동
         strcpy(tmp, usrList->current->dir);
@@ -58,8 +58,8 @@ int cd(DirectoryTree* dirTree, char* cmd)
             printf("cd: %s: Not a directory\n", cmd);
             return -1;
         }
-        val = MovePath(dirTree, cmd);
-        if(val != 0)        //파일이 없을 경우
+        check_exist = MovePath(dirTree, cmd);
+        if(check_exist != 0)        //파일이 없을 경우
             printf("cd: %s: No such file or directory\n", cmd);
     }
     return 0;
@@ -92,8 +92,8 @@ int MovePath(DirectoryTree* dirTree, char* dirPath)     //경로 이동 함수
     //variables
     DirectoryNode* tmpNode = NULL;
     char tmpPath[MAX_DIR];
-    char* str = NULL;
-    int val = 0;
+    char* command = NULL;
+    int check_exist = 0;
 
     //set tmp
     strncpy(tmpPath, dirPath, MAX_DIR);
@@ -108,14 +108,14 @@ int MovePath(DirectoryTree* dirTree, char* dirPath)     //경로 이동 함수
             }
             dirTree->current = dirTree->root;
         }
-        str = strtok(tmpPath, "/");
-        while(str != NULL){
-            val = Movecurrent(dirTree, str);
-            if(val != 0){   //경로가 없을 경우
+        command = strtok(tmpPath, "/");
+        while(command != NULL){
+            check_exist = Movecurrent(dirTree, command);
+            if(check_exist != 0){   //경로가 없을 경우
                 dirTree->current = tmpNode;
                 return -1;
             }
-            str = strtok( NULL, "/");
+            command = strtok( NULL, "/");
         }
     }
     return 0;

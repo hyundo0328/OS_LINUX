@@ -7,7 +7,7 @@ int chmod(DirectoryTree* dirTree, char* cmd)
     ThreadTree threadTree[MAX_THREAD];
 
     int thread_cnt = 0;
-    char* str;
+    char* command;
     int tmp;
 
     if(cmd == NULL){    //chmod 외에 아무것도 적히지 않았을 때
@@ -34,21 +34,25 @@ int chmod(DirectoryTree* dirTree, char* cmd)
             printf("Full documentation <https://www.gnu.org/software/coreutils/mkdir>\n");
             printf("or available locally via: info '(coreutils) mkdir invocation'\n");
         }
+        else {      //그 외의 옵션 에러처리
+            printf("chmod: invalid option '%s'\n", cmd);
+            printf("Try 'chown --help' for more information\n");
+        }
         return -1;
     }
     else{       //옵션 없을 경우
         if(cmd[0]-'0'<8 && cmd[1]-'0'<8 && cmd[2]-'0'<8 && strlen(cmd)==3){     //숫자로 표현된 권한을 넣어주기 위해(0-7까지)
             tmp = atoi(cmd);
-            str = strtok(NULL, " ");
-            if(str == NULL){        //파일 또는 디렉토리 입력하지 않았을 경우
+            command = strtok(NULL, " ");
+            if(command == NULL){        //파일 또는 디렉토리 입력하지 않았을 경우
                 printf("Try 'chmod --help' for more information.\n");
                 return -1;
             }
-            while (str) {       //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
+            while (command) {       //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
                 threadTree[thread_cnt].threadTree = dirTree;
-                threadTree[thread_cnt].cmd = str;
+                threadTree[thread_cnt].cmd = command;
                 threadTree[thread_cnt++].mode = tmp;
-                str = strtok(NULL, " ");
+                command = strtok(NULL, " ");
             }
         }
         else{

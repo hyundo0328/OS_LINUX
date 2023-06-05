@@ -151,7 +151,7 @@ int ReadNode(DirectoryTree* dirTree, char* tmp);
 void GetMonth(int i);
 void GetWeek(int i);
 void Instruction(DirectoryTree* dirTree, char* cmd);
-void PrintStart();
+void Start();
 void PrintHead(DirectoryTree* dirTree, Stack* dirStack);
 
 //permission.c
@@ -187,8 +187,7 @@ char* Pop(Stack* dirStack);
 DirectoryTree* Linux;
 Stack* dStack;
 UserList* usrList;
-FILE* Dir;
+FILE* Directory;
 FILE* User;
-sem_t semp;
 
 #endif // MAIN_H_

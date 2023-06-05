@@ -1,12 +1,12 @@
 #include "../include/main.h"
-int cnt = 1;
+int ls_cnt = 1;
 int ls(DirectoryTree* dirTree, char* cmd)
 {
     DirectoryNode* tmpNode = NULL;
     pthread_t threadArr[MAX_THREAD];
     ThreadTree threadTree[MAX_THREAD];
-    char* str;
-    int val, option = 0;
+    char* command;
+    int option = 0;
     int thread_cnt = 0;
 
     if (cmd == NULL) {
@@ -16,22 +16,22 @@ int ls(DirectoryTree* dirTree, char* cmd)
     if (cmd[0] == '-') {    //옵션이 있을 경우
         if (strcmp(cmd, "-l") == 0) {      //옵션이 -l일 경우
             option = 2;
-            str = strtok(NULL, " ");
-            if (str == NULL) {
+            command = strtok(NULL, " ");
+            if (command == NULL) {
                 ListDir(dirTree, 2);
             }
         }
         else if (strcmp(cmd, "-a") == 0) {      //옵션이 -a일 경우
             option = 1;
-            str = strtok(NULL, " ");
-            if (str == NULL) {
+            command = strtok(NULL, " ");
+            if (command == NULL) {
                 ListDir(dirTree, 1);
             }
         }
         else if (strcmp(cmd, "-al") == 0 || strcmp(cmd, "-la") == 0) {       //옵션이 -al, -la일 경우
             option = 3;
-            str = strtok(NULL, " ");
-            if (str == NULL) {
+            command = strtok(NULL, " ");
+            if (command == NULL) {
                 ListDir(dirTree, 3);
             }
         }
@@ -72,30 +72,30 @@ int ls(DirectoryTree* dirTree, char* cmd)
             return -1;
         }
         else {      //다른 옵션일 경우 에러
-            str = strtok(cmd, "-");
-            printf("ls: invalid option -- '%s'\n", str);
+            command = strtok(cmd, "-");
+            printf("ls: invalid option -- '%s'\n", command);
             printf("Try 'ls --help' for more information.\n");
             return -1;
         }
     }
     else {
-        str = strtok(NULL, " ");
+        command = strtok(NULL, " ");
         threadTree[thread_cnt].threadTree = dirTree;
         threadTree[thread_cnt].option = option;
         threadTree[thread_cnt++].cmd = cmd;
     }
-    while(str != NULL){
+    while(command != NULL){
         threadTree[thread_cnt].threadTree = dirTree;
         threadTree[thread_cnt].option = option;
-        threadTree[thread_cnt++].cmd = str;
-        str = strtok(NULL, " ");
-        cnt++;
+        threadTree[thread_cnt++].cmd = command;
+        command = strtok(NULL, " ");
+        ls_cnt++;
     }
     for (int i = 0; i < thread_cnt; i++) {
         pthread_create(&threadArr[i], NULL, ls_thread, (void *)&threadTree[i]);
         pthread_join(threadArr[i], NULL);
     }
-    cnt = 1;
+    ls_cnt = 1;
     return 0;
 }
 
@@ -105,13 +105,13 @@ void* ls_thread(void *arg) {
     char *cmd = threadTree->cmd;
     DirectoryNode *tmpNode = NULL;
     int option = threadTree->option;
-    int val;
+    int check_exist;
 
     tmpNode = dirTree->current;
-    if (cnt > 1)
+    if (ls_cnt > 1)
         printf("%s:\n", cmd);
-    val = MovePath(dirTree, cmd);
-    if (val)
+    check_exist = MovePath(dirTree, cmd);
+    if (check_exist)
     {
         printf("ls: '%s': No such file or direcory.\n", cmd);
         return -1;
@@ -127,7 +127,7 @@ int ListDir(DirectoryTree* dirTree, int option)
     DirectoryNode* tmpNode = NULL;
     DirectoryNode* tmpNode2 = NULL;
     char type;
-    int cnt;
+    int ls_cnt;
 
     tmpNode = dirTree->current->LeftChild;
 
@@ -166,7 +166,7 @@ int ListDir(DirectoryTree* dirTree, int option)
                 printf("%s      ", tmpNode->name);
             tmpNode = tmpNode->RightSibling;
         }
-        if (cnt > 1)
+        if (ls_cnt > 1)
             printf("\n");
     }
     else {
@@ -179,24 +179,24 @@ int ListDir(DirectoryTree* dirTree, int option)
         if (option == 3) {
             tmpNode2 = dirTree->current->LeftChild;
             if (tmpNode2 == NULL) {
-                cnt = 2;
+                ls_cnt = 2;
             }
             else {
                 if (tmpNode2->type == 'd')
-                    cnt = 3;
+                    ls_cnt = 3;
                 else
-                    cnt = 2;
+                    ls_cnt = 2;
 
                 while (tmpNode2->RightSibling != NULL) {
                     tmpNode2 = tmpNode2->RightSibling;
                     if (tmpNode2->type == 'd')
-                        cnt = cnt + 1;
+                        ls_cnt = ls_cnt + 1;
                 }
             }
 
             printf("%c", dirTree->current->type);
             PrintPermission(dirTree->current);
-            printf("%3d", cnt);
+            printf("%3d", ls_cnt);
             printf("   ");
             printf("%-5s%-5s", GetUID(dirTree->current), GetGID(dirTree->current));
             printf("%5d ", dirTree->current->SIZE);
@@ -209,22 +209,22 @@ int ListDir(DirectoryTree* dirTree, int option)
             if (dirTree->current != dirTree->root) {
                 tmpNode2 = dirTree->current->Parent->LeftChild;
                 if (tmpNode2 == NULL)
-                    cnt = 2;
+                    ls_cnt = 2;
                 else {
                     if (tmpNode2->type == 'd')
-                        cnt = 3;
+                        ls_cnt = 3;
                     else
-                        cnt = 2;
+                        ls_cnt = 2;
 
                     while (tmpNode2->RightSibling != NULL) {
                         tmpNode2 = tmpNode2->RightSibling;
                         if (tmpNode2->type == 'd')
-                            cnt = cnt + 1;
+                            ls_cnt = ls_cnt + 1;
                     }
                 }
                 printf("%c", dirTree->current->Parent->type);
                 PrintPermission(dirTree->current->Parent);
-                printf("%3d", cnt);
+                printf("%3d", ls_cnt);
                 printf("   ");
                 printf("%-5s%-5s", GetUID(dirTree->current->Parent), GetGID(dirTree->current->Parent));
                 printf("%5d ", dirTree->current->SIZE);
@@ -245,20 +245,20 @@ int ListDir(DirectoryTree* dirTree, int option)
             tmpNode2 = tmpNode->LeftChild;
             if (tmpNode2 == NULL) {
                 if (tmpNode->type == 'd')
-                    cnt = 2;
+                    ls_cnt = 2;
                 else
-                    cnt = 1;
+                    ls_cnt = 1;
             }
             else {
                 if (tmpNode2->type == 'd')
-                    cnt = 3;
+                    ls_cnt = 3;
                 else
-                    cnt = 2;
+                    ls_cnt = 2;
 
                 while (tmpNode2->RightSibling != NULL) {
                     tmpNode2 = tmpNode2->RightSibling;
                     if (tmpNode2->type == 'd')
-                        cnt = cnt + 1;
+                        ls_cnt = ls_cnt + 1;
                 }
             }
             if (tmpNode->type == 'd')
@@ -267,7 +267,7 @@ int ListDir(DirectoryTree* dirTree, int option)
                 type = '-';
             printf("%c", type);
             PrintPermission(tmpNode);
-            printf("%3d", cnt);
+            printf("%3d", ls_cnt);
             printf("   ");
             printf("%-9s%-9s", GetUID(tmpNode), GetGID(tmpNode));
             printf("%5d ", tmpNode->SIZE);

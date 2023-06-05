@@ -7,8 +7,8 @@ int ft_chown(DirectoryTree* dirTree, char* cmd)
     pthread_t threadPool[MAX_THREAD];
     ThreadTree threadTree[MAX_THREAD];
 
-    int thread_cnt = 0;
-    char* str;
+    int thread_count = 0;
+    char* command;
     char tmp[MAX_NAME];
 
     if(cmd == NULL){        //chown 외에 아무것도 적지 않았을 경우
@@ -46,28 +46,28 @@ int ft_chown(DirectoryTree* dirTree, char* cmd)
             printf("or available locally via: info '(coreutils) mkdir invocation'\n");
         }
         else {      //그 외의 옵션 에러처리
-            printf("chown: unrecognized option '%s'\n", cmd);
+            printf("chown: invalid option '%s'\n", cmd);
             printf("Try 'chown --help' for more information\n");
         }
         return -1;
     }
     else{
         strncpy(tmp, cmd, MAX_NAME);
-        str = strtok(NULL, " ");
-        if(str == NULL){        //파일 또는 디렉토리를 적지 않았을 경우
+        command = strtok(NULL, " ");
+        if(command == NULL){        //파일 또는 디렉토리를 적지 않았을 경우
             printf("Try 'chown --help' for more information.\n");
             return -1;
         }
         else{
-            while (str) {        //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
-                threadTree[thread_cnt].threadTree = dirTree;
-                threadTree[thread_cnt].username = tmp;
-                threadTree[thread_cnt++].cmd = str;
-                str = strtok(NULL, " ");
+            while (command) {        //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
+                threadTree[thread_count].threadTree = dirTree;
+                threadTree[thread_count].username = tmp;
+                threadTree[thread_count++].cmd = command;
+                command = strtok(NULL, " ");
             }
         }
     }
-    for (int i = 0; i < thread_cnt; i++) {      //pthread생성 후 chmod_thread로 처리, 마지막으로 join
+    for (int i = 0; i < thread_count; i++) {      //pthread생성 후 chmod_thread로 처리, 마지막으로 join
         pthread_create(&threadPool[i], NULL, chown_thread, (void*)&threadTree[i]);
         pthread_join(threadPool[i], NULL);
     }
@@ -131,24 +131,24 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
 void *chown_thread(void *arg) {     //파일마다 스레드로 실행되는 함수
     ThreadTree *threadTree = (ThreadTree *)arg;
     DirectoryTree *dirTree = threadTree->threadTree;
-    char *cmd = threadTree->cmd;
+    char *dirName = threadTree->cmd;
     char *tmp = threadTree->username;
-    char *str;
+    char *change_id;
+    char tmp2[MAX_NAME];
 
     if(!strstr(tmp, ":"))
-        ChangeOwner(dirTree, tmp, cmd, 0);      //userid 바꿔주기
+        ChangeOwner(dirTree, tmp, dirName, 0);      //userid 바꿔주기
     else {
-        char tmp2[MAX_NAME];
         strncpy(tmp2, tmp, MAX_NAME);
-        char *str2 = strtok(tmp, ":");
-        if (str2 != NULL && strcmp(tmp, tmp2) != 0){
-            ChangeOwner(dirTree, str2, cmd, 0);     //userid 바꿔주기
-            str2 = strtok(NULL, " ");
-            if (str2 != NULL)
-                ChangeOwner(dirTree, str2, cmd, 1);     //groupid 바꿔주기
+        change_id = strtok(tmp, ":");
+        if (change_id != NULL && strcmp(tmp, tmp2) != 0){
+            ChangeOwner(dirTree, change_id, dirName, 0);     //userid 바꿔주기
+            change_id = strtok(NULL, " ");
+            if (change_id != NULL)
+                ChangeOwner(dirTree, change_id, dirName, 1);     //groupid 바꿔주기
         }
-        else if (str2 != NULL && strcmp(tmp, tmp2) == 0)
-            ChangeOwner(dirTree, str2, cmd, 1);     //groupid 바꿔주기
+        else if (change_id != NULL && strcmp(tmp, tmp2) == 0)
+            ChangeOwner(dirTree, change_id, dirName, 1);     //groupid 바꿔주기
     }
     pthread_exit(NULL);
 }

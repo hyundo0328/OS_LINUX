@@ -57,39 +57,39 @@ void SaveUserList(UserList* userList)
 
     WriteUser(userList, userList->head);
 
-    fclose(Dir);
+    fclose(Directory);
 }
 
 int ReadUser(UserList* userList, char* tmp)
 {
     UserNode* tmpNode = (UserNode*)malloc(sizeof(UserNode));
-    char* str;
+    char* user_infor;
 
     tmpNode->LinkNode = NULL;
 
-    str = strtok(tmp, " ");
-    strncpy(tmpNode->name, str, MAX_NAME);
-    str = strtok(NULL, " ");
-    tmpNode->UID = atoi(str);
-    str = strtok(NULL, " ");
-    tmpNode->GID = atoi(str);
-    str = strtok(NULL, " ");
-    tmpNode->year = atoi(str);
-    str = strtok(NULL, " ");
-    tmpNode->month = atoi(str);
-    str = strtok(NULL, " ");
-    tmpNode->wday = atoi(str);
-    str = strtok(NULL, " ");
-    tmpNode->day = atoi(str);
-    str = strtok(NULL, " ");
-    tmpNode->hour = atoi(str);
-    str = strtok(NULL, " ");
-    tmpNode->minute = atoi(str);
-    str = strtok(NULL, " ");
-    tmpNode->sec = atoi(str);
-    str = strtok(NULL, " ");
-    str[strlen(str)-1] = '\0';
-    strncpy(tmpNode->dir, str, MAX_DIR);
+    user_infor = strtok(tmp, " ");
+    strncpy(tmpNode->name, user_infor, MAX_NAME);
+    user_infor = strtok(NULL, " ");
+    tmpNode->UID = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    tmpNode->GID = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    tmpNode->year = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    tmpNode->month = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    tmpNode->wday = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    tmpNode->day = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    tmpNode->hour = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    tmpNode->minute = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    tmpNode->sec = atoi(user_infor);
+    user_infor = strtok(NULL, " ");
+    user_infor[strlen(user_infor)-1] = '\0';
+    strncpy(tmpNode->dir, user_infor, MAX_DIR);
 
     if(strcasecmp(tmpNode->name, "root") == 0){
         userList->head = tmpNode;

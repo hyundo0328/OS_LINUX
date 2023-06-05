@@ -9,19 +9,19 @@ int cat(DirectoryTree* dirTree, char* cmd)
     ThreadTree threadTree[MAX_THREAD];
 
     int thread_cnt = 0;
-    char* str;
+    char* command;
     char tmp[MAX_DIR];
     char tmp2[MAX_DIR];
     char tmp3[MAX_DIR];
-    int val, option = 1;
+    int check_exist, option = 1;
 
     if(cmd == NULL){    //cat 이외에 옵션, 파일이름 모두 입력 안했을 때
-        char buf[MAX_BUFFER];
-        char *buf2 = (char*)malloc(MAX_BUFFER);
-        int num = 0;
-       while(fgets(buf, sizeof(buf), stdin)){   //표준입력을 받아주며 한 줄을 입력할 때 마다 출력해줌
-            buf2 = strcpy(buf2, buf);
-            printf("%s", buf2);
+        char buffer[MAX_BUFFER];
+        char *buffer2 = (char*)malloc(MAX_BUFFER);
+
+       while(fgets(buffer, sizeof(buffer), stdin)){   //표준입력을 받아주며 한 줄을 입력할 때 마다 출력해줌
+            buffer2 = strcpy(buffer2, buffer);
+            printf("%s", buffer2);
         }
         rewind(stdin);  //ctrl+d를 누르면 탈출
         return -1;
@@ -29,41 +29,41 @@ int cat(DirectoryTree* dirTree, char* cmd)
     currentNode = dirTree->current;
 
     if(strcmp(cmd, ">") == 0){  // > 옵션일 때
-        str = strtok(NULL, " ");
-        if(str == NULL){
+        command = strtok(NULL, " ");
+        if(command == NULL){
             printf("bash: sysntax error near unexpected token 'newline'\n");
             return -1;
         }
-        strncpy(tmp, str, MAX_DIR);
-        if(strstr(str, "/") == NULL){       //현재 디렉토리 안의 파일 불러올 경우
+        strncpy(tmp, command, MAX_DIR);
+        if(strstr(command, "/") == NULL){       //현재 디렉토리 안의 파일 불러올 경우
             if(HasPermission(dirTree->current, 'w') != 0){
                 printf("cat: cannot create directory: '%s': Permission denied\n", dirTree->current->name);
                 return -1;
             }
-            tmpNode = IsExistDir(dirTree, str, 'd');    //디렉토리일 경우
-            if(tmpNode != NULL || strcmp(str, ".") == 0 || strcmp(str, "..") == 0){
-                printf("cat: cannot create directory: '%s': Is a directory\n", str);
+            tmpNode = IsExistDir(dirTree, command, 'd');    //디렉토리일 경우
+            if(tmpNode != NULL || strcmp(command, ".") == 0 || strcmp(command, "..") == 0){
+                printf("cat: cannot create directory: '%s': Is a directory\n", command);
                 return -1;
             }
             else
-                cat_print(dirTree, str, 0);
+                cat_print(dirTree, command, 0);
         }
         else{       //그 외에 다른 디렉토리에서 파일을 불러올 경우
-            if (strcmp(str, "/") == 0)
+            if (strcmp(command, "/") == 0)
             {
                 printf("cat: cannot create directory: '/': Is a directory\n");
                 return -1;
             }
-            strncpy(tmp2, getDir(str), MAX_DIR);
-            val = MovePath(dirTree, tmp2);
-            if(val != 0){
+            strncpy(tmp2, getDir(command), MAX_DIR);
+            check_exist = MovePath(dirTree, tmp2);
+            if(check_exist != 0){
                 printf("cat: '%s': No such file or directry\n", tmp2);
                 return -1;
             }
-            str = strtok(tmp, "/");
-            while(str != NULL){
-                strncpy(tmp3, str, MAX_NAME);
-                str = strtok(NULL, "/");
+            command = strtok(tmp, "/");
+            while(command != NULL){
+                strncpy(tmp3, command, MAX_NAME);
+                command = strtok(NULL, "/");
             }
             if(HasPermission(dirTree->current, 'w') != 0){
                 printf("cat: cannot create directory: '%s': Permission denied\n", dirTree->current->name);
@@ -84,8 +84,8 @@ int cat(DirectoryTree* dirTree, char* cmd)
     }
     else if(cmd[0] == '-'){     //옵션이 있을 때
         if(strcmp(cmd, "-n")== 0){      //n 옵션일 때
-            str = strtok(NULL, " ");
-            if (str == NULL){
+            command = strtok(NULL, " ");
+            if (command == NULL){
                 printf("cat: missing operand\n");
                 printf("Try 'cat --help' for more information.\n");
                 return -1;
@@ -123,16 +123,16 @@ int cat(DirectoryTree* dirTree, char* cmd)
             cat_print(dirTree, cmd, 3);
             return 0;
         }
-        str = strtok(NULL, " ");
+        command = strtok(NULL, " ");
         threadTree[thread_cnt].threadTree = dirTree;
         threadTree[thread_cnt].option = option;
         threadTree[thread_cnt++].cmd = cmd;
     }
-    while (str != NULL) {   //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
+    while (command != NULL) {   //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
         threadTree[thread_cnt].threadTree = dirTree;
         threadTree[thread_cnt].option = option;
-        threadTree[thread_cnt++].cmd = str;
-        str = strtok(NULL, " ");
+        threadTree[thread_cnt++].cmd = command;
+        command = strtok(NULL, " ");
     }
     for (int i = 0; i < thread_cnt; i++) {      //pthread생성 후 cat_thread로 처리, 마지막으로 join
         pthread_create(&threadArr[i], NULL, cat_thread, (void*)&threadTree[i]);
@@ -151,9 +151,9 @@ void *cat_thread(void *arg) {   //파일마다 스레드로 실행되는 함수
     char tmp[MAX_DIR];
     char tmp2[MAX_DIR];
     char tmp3[MAX_DIR];
-    char *str;
+    char *command;
     int option = threadTree->option;
-    int val;
+    int check_exist;
 
     strncpy(tmp, cmd, MAX_DIR);
     if (strstr(tmp, "/") == NULL) {     //위치한 디렉토리 안에 있는 파일일 경우
@@ -179,20 +179,20 @@ void *cat_thread(void *arg) {   //파일마다 스레드로 실행되는 함수
     }
     else {      //그 외에 다른 디렉토리 안에 있는 파일 불러올 경우
         strncpy(tmp2, getDir(tmp), MAX_DIR);
-        val = MovePath(dirTree, tmp2);
-        if (val) {      //파일 경로가 존재하지 않을 경우
+        check_exist = MovePath(dirTree, tmp2);
+        if (check_exist) {      //파일 경로가 존재하지 않을 경우
             printf("cat: '%s': No such file or directory.\n", tmp2);
             return NULL;
         }
-        str = strtok(cmd, "/");
-        if (str == NULL)
+        command = strtok(cmd, "/");
+        if (command == NULL)
         {
             printf("cat: '/': Is a directory.\n");
             return NULL;
         }
-        while (str != NULL) {
-            strncpy(tmp3, str, MAX_NAME);
-            str = strtok(NULL, "/");
+        while (command != NULL) {
+            strncpy(tmp3, command, MAX_NAME);
+            command = strtok(NULL, "/");
         }
         tmpNode = IsExistDir(dirTree, tmp3, 'd');
         tmpNode2 = IsExistDir(dirTree, tmp3, 'f');
@@ -223,11 +223,11 @@ int cat_print(DirectoryTree* dirTree, char* fName, int o)     //cat명령어 수
     UserNode* tmpUser = NULL;
     DirectoryNode* tmpNode = NULL;
     FILE* fp;
-    char buf[MAX_BUFFER];
+    char buffer[MAX_BUFFER];
     char tmpName[MAX_NAME];
-    char* str;
+    char* command;
     int tmpSIZE = 0;
-    int cnt = 1;
+    int count = 1;
 
     //file read
     if(o != 0){
@@ -247,27 +247,27 @@ int cat_print(DirectoryTree* dirTree, char* fName, int o)     //cat명령어 수
         fp = fopen(fName, "r");
 
         while(feof(fp) == 0){
-            fgets(buf, sizeof(buf), fp);
+            fgets(buffer, sizeof(buffer), fp);
             if(feof(fp) != 0){
                 break;
             }
             if(o == 2){     // n 옵션일 경우
-                if(buf[strlen(buf)-1] == '\n'){
-                    printf("     %d\t",cnt);
-                    cnt++;
+                if(buffer[strlen(buffer)-1] == '\n'){
+                    printf("     %d\t",count);
+                    count++;
                 }
             }
-            fputs(buf, stdout);
+            fputs(buffer, stdout);
         }
 
         fclose(fp);
     }
     else{       // > 옵션일 때
         fp = fopen(fName, "w");
-       while(fgets(buf, sizeof(buf), stdin)){
-            fputs(buf, fp);
+       while(fgets(buffer, sizeof(buffer), stdin)){
+            fputs(buffer, fp);
             //get file size
-            tmpSIZE += strlen(buf)-1;
+            tmpSIZE += strlen(buffer)-1;
         }
         rewind(stdin);
         fclose(fp);

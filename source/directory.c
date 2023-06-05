@@ -29,15 +29,15 @@ DirectoryNode* IsExistDir(DirectoryTree* dirTree, char* dirName, char type)
 char* getDir(char* dirPath)
 {
     char* tmpPath = (char*)malloc(MAX_DIR);
-    char* str = NULL;
+    char* directory = NULL;
     char tmp[MAX_DIR];
     char tmp2[MAX_DIR];
 
     strncpy(tmp, dirPath, MAX_DIR);
-    str = strtok(dirPath, "/");
-    while(str != NULL){
-        strncpy(tmp2, str, MAX_DIR);
-        str  = strtok(NULL, "/");
+    directory = strtok(dirPath, "/");
+    while(directory != NULL){
+        strncpy(tmp2, directory, MAX_DIR);
+        directory  = strtok(NULL, "/");
     }
     strncpy(tmpPath, tmp, strlen(tmp)-strlen(tmp2)-1);
     tmpPath[strlen(tmp)-strlen(tmp2)-1] = '\0';
@@ -47,9 +47,9 @@ char* getDir(char* dirPath)
 void SaveDir(DirectoryTree* dirTree, Stack* dirStack)
 {
 
-    Dir = fopen("Directory.txt", "w");
+    Directory = fopen("Directory.txt", "w");
     WriteNode(dirTree, dirTree->root, dirStack);
-    fclose(Dir);
+    fclose(Directory);
 }
 
 DirectoryTree* LoadDir()
@@ -57,11 +57,11 @@ DirectoryTree* LoadDir()
     DirectoryTree* dirTree = (DirectoryTree*)malloc(sizeof(DirectoryTree));
     char tmp[MAX_LENGTH];
 
-    Dir = fopen("Directory.txt", "r");
-    while(fgets(tmp, MAX_LENGTH, Dir) != NULL){
+    Directory = fopen("Directory.txt", "r");
+    while(fgets(tmp, MAX_LENGTH, Directory) != NULL){
         ReadNode(dirTree, tmp);
     }
-    fclose(Dir);
+    fclose(Directory);
     dirTree->current = dirTree->root;
     return dirTree;
 }

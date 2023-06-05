@@ -25,16 +25,16 @@ void getPath(DirectoryTree* dirTree, DirectoryNode* dirNode, Stack* dirStack)
                 strcat(tmp ,Pop(dirStack));
         }
     }
-    fprintf(Dir, " %s\n", tmp);
+    fprintf(Directory, " %s\n", tmp);
 }
 
 void WriteNode(DirectoryTree* dirTree, DirectoryNode* dirNode, Stack* dirStack)
 {
-    fprintf(Dir, "%s %c %d ", dirNode->name, dirNode->type, dirNode->mode);
-    fprintf(Dir, "%d %d %d %d %d %d %d", dirNode->SIZE, dirNode->UID, dirNode->GID, dirNode->month, dirNode->day, dirNode->hour, dirNode->minute);
+    fprintf(Directory, "%s %c %d ", dirNode->name, dirNode->type, dirNode->mode);
+    fprintf(Directory, "%d %d %d %d %d %d %d", dirNode->SIZE, dirNode->UID, dirNode->GID, dirNode->month, dirNode->day, dirNode->hour, dirNode->minute);
 
     if(dirNode == dirTree->root)
-        fprintf(Dir, "\n");
+        fprintf(Directory, "\n");
     else
         getPath(dirTree, dirNode, dirStack);
 
@@ -50,38 +50,38 @@ int ReadNode(DirectoryTree* dirTree, char* tmp)
 {
     DirectoryNode* NewNode = (DirectoryNode*)malloc(sizeof(DirectoryNode));
     DirectoryNode* tmpNode = NULL;
-    char* str;
+    char* command;
 
     NewNode->LeftChild = NULL;
     NewNode->RightSibling = NULL;
     NewNode->Parent = NULL;
 
-    str = strtok(tmp, " ");
-    strncpy(NewNode->name, str, MAX_NAME);
-    str = strtok(NULL, " ");
-    NewNode->type = str[0];
-    str = strtok(NULL, " ");
-    NewNode->mode = atoi(str);
+    command = strtok(tmp, " ");
+    strncpy(NewNode->name, command, MAX_NAME);
+    command = strtok(NULL, " ");
+    NewNode->type = command[0];
+    command = strtok(NULL, " ");
+    NewNode->mode = atoi(command);
     Atoi_permission(NewNode);
-    str = strtok(NULL, " ");
-    NewNode->SIZE = atoi(str);
-    str = strtok(NULL, " ");
-    NewNode->UID = atoi(str);
-    str = strtok(NULL, " ");
-    NewNode->GID = atoi(str);
-    str = strtok(NULL, " ");
-    NewNode->month = atoi(str);
-    str = strtok(NULL, " ");
-    NewNode->day = atoi(str);
-    str = strtok(NULL, " ");
-    NewNode->hour = atoi(str);
-    str = strtok(NULL, " ");
-    NewNode->minute = atoi(str);
+    command = strtok(NULL, " ");
+    NewNode->SIZE = atoi(command);
+    command = strtok(NULL, " ");
+    NewNode->UID = atoi(command);
+    command = strtok(NULL, " ");
+    NewNode->GID = atoi(command);
+    command = strtok(NULL, " ");
+    NewNode->month = atoi(command);
+    command = strtok(NULL, " ");
+    NewNode->day = atoi(command);
+    command = strtok(NULL, " ");
+    NewNode->hour = atoi(command);
+    command = strtok(NULL, " ");
+    NewNode->minute = atoi(command);
 
-    str = strtok(NULL, " ");
-    if(str != NULL){
-        str[strlen(str)-1] = '\0';
-        MovePath(dirTree, str);
+    command = strtok(NULL, " ");
+    if(command != NULL){
+        command[strlen(command)-1] = '\0';
+        MovePath(dirTree, command);
         NewNode->Parent = dirTree->current;
 
         if(dirTree->current->LeftChild == NULL){
@@ -104,9 +104,9 @@ int ReadNode(DirectoryTree* dirTree, char* tmp)
     return 0;
 }
 
-void GetMonth(int i)
+void GetMonth(int month)
 {
-    switch(i){
+    switch(month){
     case 1:
         printf("Jan ");
         break;
@@ -148,9 +148,9 @@ void GetMonth(int i)
     }
 }
 
-void GetWeek(int i)
+void GetWeek(int week)
 {
-    switch(i){
+    switch(week){
     case 0:
         printf("Sun ");
         break;
@@ -179,64 +179,64 @@ void GetWeek(int i)
 
 void Instruction(DirectoryTree* dirTree, char* cmd)
 {
-    char* str;
-    int val;
+    char* command;
+    int check_correct;
     if(strcmp(cmd, "") == 0 || cmd[0] == ' '){
         return;
     }
-    str = strtok(cmd, " ");
-    if(strcasecmp(str, "cat") == 0){
-        str = strtok(NULL, " ");
-        val = cat(dirTree, str);
-        if(val == 0){
+    command = strtok(cmd, " ");
+    if(strcasecmp(command, "cat") == 0){
+        command = strtok(NULL, " ");
+        check_correct = cat(dirTree, command);
+        if(check_correct == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcasecmp(str, "cd") == 0){
-        str = strtok(NULL, " ");
-        cd(dirTree, str);
+    else if(strcasecmp(command, "cd") == 0){
+        command = strtok(NULL, " ");
+        cd(dirTree, command);
     }
-    else if(strcasecmp(str, "chmod") == 0){
-        str = strtok(NULL, " ");
-        val = chmod(dirTree, str);
-        if(val == 0){
+    else if(strcasecmp(command, "chmod") == 0){
+        command = strtok(NULL, " ");
+        check_correct = chmod(dirTree, command);
+        if(check_correct == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcasecmp(str, "chown") == 0){
-        str = strtok(NULL, " ");
-        val = ft_chown(dirTree, str);
-        if(val == 0){
+    else if(strcasecmp(command, "chown") == 0){
+        command = strtok(NULL, " ");
+        check_correct = ft_chown(dirTree, command);
+        if(check_correct == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcasecmp(str, "find") == 0){
-        str = strtok(NULL, " ");
-        find(dirTree, str);
+    else if(strcasecmp(command, "find") == 0){
+        command = strtok(NULL, " ");
+        find(dirTree, command);
     }
-    else if(strcasecmp(str, "grep") == 0){
-        str = strtok(NULL, " ");
-        grep(dirTree, str);
+    else if(strcasecmp(command, "grep") == 0){
+        command = strtok(NULL, " ");
+        grep(dirTree, command);
     }
-    else if(strcasecmp(str, "ls") == 0){
-        str = strtok(NULL, " ");
-        ls(dirTree, str);
+    else if(strcasecmp(command, "ls") == 0){
+        command = strtok(NULL, " ");
+        ls(dirTree, command);
     }
-    else if(strcasecmp(str, "mkdir") == 0){
-        str = strtok(NULL, " ");
-        val = mkdir(dirTree, str);
-        if(val == 0){
+    else if(strcasecmp(command, "mkdir") == 0){
+        command = strtok(NULL, " ");
+        check_correct = mkdir(dirTree, command);
+        if(check_correct == 0){
             SaveDir(dirTree, dStack);
         }
     }
-    else if(strcasecmp(str, "pwd") == 0){
-        str = strtok(NULL, " ");
-        pwd(dirTree, dStack, str);
+    else if(strcasecmp(command, "pwd") == 0){
+        command = strtok(NULL, " ");
+        pwd(dirTree, dStack, command);
     }
-    else if(strcasecmp(str, "rm") == 0){
-        str = strtok(NULL, " ");
-        val = rm(dirTree, str);
-        if(val == 0){
+    else if(strcasecmp(command, "rm") == 0){
+        command = strtok(NULL, " ");
+        check_correct = rm(dirTree, command);
+        if(check_correct == 0){
             SaveDir(dirTree, dStack);
         }
     }
@@ -250,7 +250,7 @@ void Instruction(DirectoryTree* dirTree, char* cmd)
     return;
 }
 
-void PrintStart()
+void Start()
 {
     printf("Last login: ");
     GetWeek(usrList->current->wday);
@@ -264,15 +264,15 @@ void PrintHead(DirectoryTree* dirTree, Stack* dirStack)
     DirectoryNode* tmpNode = NULL;
     char tmp[MAX_DIR] = "";
     char tmp2[MAX_DIR] = "";
-    char usr;
+    char user;
 
     if(usrList->current == usrList->head)
-        usr = '#';
+        user = '#';
     else
-        usr = '$';
+        user = '$';
 
     BOLD;GREEN;
-    printf("%s@5-os-linux", usrList->current->name);
+    printf("%s@2-os-linux", usrList->current->name);
     DEFAULT;
     printf(":");
     tmpNode = dirTree->current;
@@ -317,5 +317,5 @@ void PrintHead(DirectoryTree* dirTree, Stack* dirStack)
         }
     }
     DEFAULT;
-    printf("%c ", usr);
+    printf("%c ", user);
 }
