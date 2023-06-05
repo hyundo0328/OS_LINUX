@@ -106,7 +106,9 @@ void *chown_thread(void *arg) {     //파일마다 스레드로 실행되는 함
     char temp[MAX_DIR];
     char tmp2[MAX_NAME];
     char tmp3[MAX_DIR];
+    char tmp_user[MAX_NAME];
 
+    strncpy(tmp_user, tmp, MAX_NAME);
     strncpy(temp, dirName, MAX_DIR);
     if (strstr(temp, "/") == NULL) {
         tmpNode = IsExistDir(dirTree, temp, 'f');
@@ -120,19 +122,19 @@ void *chown_thread(void *arg) {     //파일마다 스레드로 실행되는 함
                 printf("chown: changing ownership of '%s': Operation not permitted\n", temp);
                 return NULL;
             }
-            if(!strstr(tmp, ":"))
-                ChangeOwner(dirTree, tmp, temp, 0);      //userid 바꿔주기
+            if(!strstr(tmp_user, ":"))
+                ChangeOwner(dirTree, tmp_user, temp, 0);      //userid 바꿔주기
             else {
-                strncpy(tmp2, tmp, MAX_NAME);
-                change_id = strtok(tmp, ":");
+                strncpy(tmp2, tmp_user, MAX_NAME);
+                change_id = strtok(tmp_user, ":");
 
-                if (change_id != NULL && strcmp(tmp, tmp2) != 0){
+                if (change_id != NULL && strcmp(tmp_user, tmp2) != 0){
                     ChangeOwner(dirTree, change_id, temp, 0);     //userid 바꿔주기
                     change_id = strtok(NULL, " ");
                     if (change_id != NULL)
                         ChangeOwner(dirTree, change_id, temp, 1);     //groupid 바꿔주기
                 }
-                else if (change_id != NULL && strcmp(tmp, tmp2) == 0)
+                else if (change_id != NULL && strcmp(tmp_user, tmp2) == 0)
                     ChangeOwner(dirTree, change_id, temp, 1);     //groupid 바꿔주기
             }
         }
@@ -163,54 +165,23 @@ void *chown_thread(void *arg) {     //파일마다 스레드로 실행되는 함
                 dirTree->current = currentNode;
                 return NULL;
             }
-            if(!strstr(tmp, ":"))
-                ChangeOwner(dirTree, tmp, tmp3, 0);      //userid 바꿔주기
+            if(!strstr(tmp_user, ":"))
+                ChangeOwner(dirTree, tmp_user, tmp3, 0);      //userid 바꿔주기
             else{
-                strncpy(tmp2, tmp, MAX_NAME);
-                change_id = strtok(tmp, ":");
+                strncpy(tmp2, tmp_user, MAX_NAME);
+                change_id = strtok(tmp_user, ":");
 
-                if (change_id != NULL && strcmp(tmp, tmp2) != 0){
+                if (change_id != NULL && strcmp(tmp_user, tmp2) != 0){
                     ChangeOwner(dirTree, change_id, tmp3, 0);     //userid 바꿔주기
                     change_id = strtok(NULL, " ");
                     if (change_id != NULL)
                         ChangeOwner(dirTree, change_id, tmp3, 1);     //groupid 바꿔주기
                 }
-                else if (change_id != NULL && strcmp(tmp, tmp2) == 0)
+                else if (change_id != NULL && strcmp(tmp_user, tmp2) == 0)
                     ChangeOwner(dirTree, change_id, tmp3, 1);     //groupid 바꿔주기
             }
         }
         dirTree->current = currentNode;
     }
-
-
-
-/*
-    tmpNode = IsExistDir(dirTree, dirName, 'd');
-    tmpNode = IsExistDir(dirTree, dirName, 'f') == NULL ? tmpNode : IsExistDir(dirTree, dirName, 'f');
-    if (tmpNode == NULL)
-    {
-        printf("chown: cannot access '%s': No such file or directory\n", dirName);   //파일 또는 디렉토리가 없을 경우
-        return NULL;
-    }
-    if(HasPermission(tmpNode, 'w') != 0){       //허가권한이 거부되었을 때
-        printf("chown: changing ownership of '%s': Operation not permitted\n", dirName);
-        return NULL;
-    }
-    if(!strstr(tmp, ":"))
-        ChangeOwner(dirTree, tmp, dirName, 0);      //userid 바꿔주기
-    else {
-        strncpy(tmp2, tmp, MAX_NAME);
-        change_id = strtok(tmp, ":");
-
-        if (change_id != NULL && strcmp(tmp, tmp2) != 0){
-            ChangeOwner(dirTree, change_id, dirName, 0);     //userid 바꿔주기
-            change_id = strtok(NULL, " ");
-            if (change_id != NULL)
-                ChangeOwner(dirTree, change_id, dirName, 1);     //groupid 바꿔주기
-        }
-        else if (change_id != NULL && strcmp(tmp, tmp2) == 0)
-            ChangeOwner(dirTree, change_id, dirName, 1);     //groupid 바꿔주기
-    }
-    */
     pthread_exit(NULL);
 }
