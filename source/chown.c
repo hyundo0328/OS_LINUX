@@ -58,13 +58,11 @@ int ft_chown(DirectoryTree* dirTree, char* cmd)
             printf("Try 'chown --help' for more information.\n");
             return -1;
         }
-        else{
-            while (command) {        //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
-                threadTree[thread_count].threadTree = dirTree;
-                threadTree[thread_count].username = tmp;
-                threadTree[thread_count++].cmd = command;
-                command = strtok(NULL, " ");
-            }
+        while (command) {        //멀티스레드 작업을 위해 파일이름마다 스레드배열안에 정보를 저장
+            threadTree[thread_count].threadTree = dirTree;
+            threadTree[thread_count].username = tmp;
+            threadTree[thread_count++].cmd = command;
+            command = strtok(NULL, " ");
         }
     }
     for (int i = 0; i < thread_count; i++) {      //pthread생성 후 chmod_thread로 처리, 마지막으로 join
@@ -77,51 +75,20 @@ int ft_chown(DirectoryTree* dirTree, char* cmd)
 int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)        //허가권한 바꿔주는 함수
 {
     DirectoryNode* tmpNode = NULL;
-    DirectoryNode* tmpNode2 = NULL;
     UserNode* tmpUser = NULL;
 
     tmpNode = IsExistDir(dirTree, dirName, 'd');
-    tmpNode2 = IsExistDir(dirTree, dirName, 'f');
-
-
-    if(tmpNode != NULL){
-        if(HasPermission(tmpNode, 'w') != 0){       //허가권한이 거부되었을 때
-            printf("chown: changing ownership of '%s': Operation not permitted\n", dirName);
-            return -1;
-        }
-        tmpUser = IsExistUser(usrList, userName);
-        if(tmpUser != NULL){
-            if (flag == 0)
-                tmpNode->UID = tmpUser->UID;
-            else
-                tmpNode->GID = tmpUser->GID;
-        }
-        else{       //존재하지 않는 유저를 적었을 경우
-            printf("chown: missing operand after '%s'\n", userName);
-            printf("Try 'chown --help' for more information.\n");
-            return -1;
-        }
+    tmpNode = IsExistDir(dirTree, dirName, 'f') == NULL ? tmpNode : IsExistDir(dirTree, dirName, 'f');
+    tmpUser = IsExistUser(usrList, userName);
+    if(tmpUser != NULL){
+        if (flag == 0)
+            tmpNode->UID = tmpUser->UID;
+        else
+            tmpNode->GID = tmpUser->GID;
     }
-    else if(tmpNode2 != NULL){
-        if(HasPermission(tmpNode2, 'w') != 0){      //허가권한이 거부되었을 때
-            printf("chown: changing ownership of '%s': Operation not permitted\n", dirName);
-            return -1;
-        }
-        tmpUser = IsExistUser(usrList, userName);
-        if(tmpUser != NULL){
-            if (flag == 0)
-                tmpNode2->UID = tmpUser->UID;
-            else
-                tmpNode2->GID = tmpUser->GID;
-        }
-        else{       //존재하지 않는 유저를 적었을 경우
-            printf("chown: missing operand after '%s'\n", userName);
-            printf("Try 'chown --help' for more information.\n");
-            return -1;
-        }
-    }
-    else{
-        printf("chown: cannot access '%s': No such file or directory\n", dirName);   //파일 또는 디렉토리가 없을 경우
+    else{       //존재하지 않는 유저를 적었을 경우
+        printf("chown: missing operand after '%s'\n", userName);
+        printf("Try 'chown --help' for more information.\n");
         return -1;
     }
 
@@ -131,16 +98,110 @@ int ChangeOwner(DirectoryTree* dirTree, char* userName, char* dirName, int flag)
 void *chown_thread(void *arg) {     //파일마다 스레드로 실행되는 함수
     ThreadTree *threadTree = (ThreadTree *)arg;
     DirectoryTree *dirTree = threadTree->threadTree;
+    DirectoryNode* tmpNode = NULL;
+    DirectoryNode* currentNode = dirTree->current;
     char *dirName = threadTree->cmd;
     char *tmp = threadTree->username;
     char *change_id;
+    char temp[MAX_DIR];
     char tmp2[MAX_NAME];
+    char tmp3[MAX_DIR];
 
+    strncpy(temp, dirName, MAX_DIR);
+    if (strstr(temp, "/") == NULL) {
+        tmpNode = IsExistDir(dirTree, temp, 'f');
+        tmpNode = IsExistDir(dirTree, temp, 'd') == NULL ? tmpNode : IsExistDir(dirTree, temp, 'd');
+        if (tmpNode == NULL) {
+            printf("chown: cannot access '%s': No such file or directory\n", temp);   //파일 또는 디렉토리가 없을 경우
+            return NULL;
+        }
+        else {
+            if (HasPermission(tmpNode, 'w') != 0) {
+                printf("chown: changing ownership of '%s': Operation not permitted\n", temp);
+                return NULL;
+            }
+            if(!strstr(tmp, ":"))
+                ChangeOwner(dirTree, tmp, temp, 0);      //userid 바꿔주기
+            else {
+                strncpy(tmp2, tmp, MAX_NAME);
+                change_id = strtok(tmp, ":");
+
+                if (change_id != NULL && strcmp(tmp, tmp2) != 0){
+                    ChangeOwner(dirTree, change_id, temp, 0);     //userid 바꿔주기
+                    change_id = strtok(NULL, " ");
+                    if (change_id != NULL)
+                        ChangeOwner(dirTree, change_id, temp, 1);     //groupid 바꿔주기
+                }
+                else if (change_id != NULL && strcmp(tmp, tmp2) == 0)
+                    ChangeOwner(dirTree, change_id, temp, 1);     //groupid 바꿔주기
+            }
+        }
+    }
+    else {
+        char tmp4[MAX_DIR];
+        strncpy(tmp4, getDir(temp), MAX_DIR);
+        int check_exist = MovePath(dirTree, tmp4);
+        if (check_exist) {
+            printf("rm: cannot remove '%s': No such file or directory.\n", tmp4);
+            return NULL;
+        }
+        char* command = strtok(dirName, "/");
+        while (command != NULL) {
+            strncpy(tmp3, command, MAX_NAME);
+            command = strtok(NULL, "/");
+        }
+        tmpNode = IsExistDir(dirTree, tmp3, 'f');
+        tmpNode = IsExistDir(dirTree, tmp3, 'd') == NULL ? tmpNode : IsExistDir(dirTree, tmp3, 'd');
+        if (tmpNode == NULL) {
+            printf("chown: cannot access '%s': No such file or directory\n", tmp3);   //파일 또는 디렉토리가 없을 경우
+            dirTree->current = currentNode;
+            return NULL;
+        }
+        else {
+            if (HasPermission(tmpNode, 'w') != 0) {
+                printf("chown: changing ownership of '%s': Operation not permitted\n", tmp3);
+                dirTree->current = currentNode;
+                return NULL;
+            }
+            if(!strstr(tmp, ":"))
+                ChangeOwner(dirTree, tmp, tmp3, 0);      //userid 바꿔주기
+            else{
+                strncpy(tmp2, tmp, MAX_NAME);
+                change_id = strtok(tmp, ":");
+
+                if (change_id != NULL && strcmp(tmp, tmp2) != 0){
+                    ChangeOwner(dirTree, change_id, tmp3, 0);     //userid 바꿔주기
+                    change_id = strtok(NULL, " ");
+                    if (change_id != NULL)
+                        ChangeOwner(dirTree, change_id, tmp3, 1);     //groupid 바꿔주기
+                }
+                else if (change_id != NULL && strcmp(tmp, tmp2) == 0)
+                    ChangeOwner(dirTree, change_id, tmp3, 1);     //groupid 바꿔주기
+            }
+        }
+        dirTree->current = currentNode;
+    }
+
+
+
+/*
+    tmpNode = IsExistDir(dirTree, dirName, 'd');
+    tmpNode = IsExistDir(dirTree, dirName, 'f') == NULL ? tmpNode : IsExistDir(dirTree, dirName, 'f');
+    if (tmpNode == NULL)
+    {
+        printf("chown: cannot access '%s': No such file or directory\n", dirName);   //파일 또는 디렉토리가 없을 경우
+        return NULL;
+    }
+    if(HasPermission(tmpNode, 'w') != 0){       //허가권한이 거부되었을 때
+        printf("chown: changing ownership of '%s': Operation not permitted\n", dirName);
+        return NULL;
+    }
     if(!strstr(tmp, ":"))
         ChangeOwner(dirTree, tmp, dirName, 0);      //userid 바꿔주기
     else {
         strncpy(tmp2, tmp, MAX_NAME);
         change_id = strtok(tmp, ":");
+
         if (change_id != NULL && strcmp(tmp, tmp2) != 0){
             ChangeOwner(dirTree, change_id, dirName, 0);     //userid 바꿔주기
             change_id = strtok(NULL, " ");
@@ -150,5 +211,6 @@ void *chown_thread(void *arg) {     //파일마다 스레드로 실행되는 함
         else if (change_id != NULL && strcmp(tmp, tmp2) == 0)
             ChangeOwner(dirTree, change_id, dirName, 1);     //groupid 바꿔주기
     }
+    */
     pthread_exit(NULL);
 }
